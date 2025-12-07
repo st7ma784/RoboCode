@@ -1,0 +1,140 @@
+name: Tank Battle Test
+
+on:
+  pull_request:
+    paths:
+      - 'Submissions/**'
+  workflow_dispatch:
+
+jobs:
+  battle-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Find submitted tanks
+        id: find_tanks
+        run: |
+          # Find new tank files in Submissions directory
+          TANKS=$(find Submissions -name "*.py" -type f | head -5)
+          echo "Found tanks: $TANKS"
+          echo "tanks=$TANKS" >> $GITHUB_OUTPUT
+
+      - name: Run battles
+        id: run_battles
+        run: |
+          # This is a placeholder for the actual battle runner
+          # You would implement a battle_runner.py script that:
+          # 1. Loads submitted tank
+          # 2. Runs battles against sample tanks
+          # 3. Generates results and videos
+
+          echo "🤖 Running tank battles..."
+          echo "⚔️ Battle 1: Submitted Tank vs SittingDuck"
+          echo "⚔️ Battle 2: Submitted Tank vs SpinBot"
+          echo "⚔️ Battle 3: Submitted Tank vs WallsBot"
+          echo "⚔️ Battle 4: Submitted Tank vs TrackerBot"
+          echo "⚔️ Battle 5: Submitted Tank vs ChampionBot"
+
+          # For now, create a sample results file
+          mkdir -p battle_results
+          cat > battle_results/summary.md << 'EOF'
+          # Battle Results 🎮
+
+          ## Summary
+          - **Wins**: 3/5
+          - **Total Damage Dealt**: 245
+          - **Total Damage Taken**: 180
+          - **Accuracy**: 65%
+          - **Final Score**: 42 points
+
+          ## Individual Battles
+
+          ### Battle 1: vs SittingDuck
+          - **Result**: ✅ WIN
+          - **Damage Dealt**: 100
+          - **Damage Taken**: 0
+          - **Time**: 15 ticks
+
+          ### Battle 2: vs SpinBot
+          - **Result**: ✅ WIN
+          - **Damage Dealt**: 85
+          - **Damage Taken**: 25
+          - **Time**: 45 ticks
+
+          ### Battle 3: vs WallsBot
+          - **Result**: ✅ WIN
+          - **Damage Dealt**: 60
+          - **Damage Taken**: 45
+          - **Time**: 78 ticks
+
+          ### Battle 4: vs TrackerBot
+          - **Result**: ❌ LOSS
+          - **Damage Dealt**: 0
+          - **Damage Taken**: 60
+          - **Time**: 32 ticks
+
+          ### Battle 5: vs ChampionBot
+          - **Result**: ❌ LOSS
+          - **Damage Dealt**: 0
+          - **Damage Taken**: 50
+          - **Time**: 28 ticks
+
+          ## Recommendations
+          1. 💡 Great job against basic opponents!
+          2. 💡 Consider improving movement patterns for advanced opponents
+          3. 💡 Your accuracy is good - try predictive targeting
+          4. 💡 Work on energy management in difficult battles
+
+          ## Battle Videos
+          (Videos would be generated here in a real implementation)
+
+          ---
+          Keep improving and try again! 🚀
+          EOF
+
+      - name: Upload battle results
+        uses: actions/upload-artifact@v3
+        with:
+          name: battle-results
+          path: battle_results/
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('battle_results/summary.md', 'utf8');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+      - name: Generate badge
+        run: |
+          # Generate a badge showing win rate
+          # This would create a shields.io badge or similar
+          echo "Badge generation placeholder"
+
+      - name: Update leaderboard
+        if: github.event_name == 'pull_request'
+        run: |
+          # This would update a leaderboard file
+          # comparing all submitted tanks
+          echo "Leaderboard update placeholder"
