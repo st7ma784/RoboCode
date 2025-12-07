@@ -1,0 +1,61 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-12-07T00:00:00Z",
+  "rankings": [
+    {
+      "rank": 1,
+      "name": "ChampionBot",
+      "author": "Sample",
+      "file": "Samples/champion_bot.py",
+      "total_score": 0,
+      "wins": 0,
+      "losses": 0,
+      "ties": 0,
+      "battles_fought": 0,
+      "total_damage_dealt": 0,
+      "total_damage_taken": 0,
+      "accuracy": 0.0,
+      "survival_rate": 0.0,
+      "avg_score_per_battle": 0.0,
+      "badge": "champion",
+      "achievements": []
+    }
+  ],
+  "badge_criteria": {
+    "rookie": {
+      "description": "First submission",
+      "condition": "battles_fought >= 1"
+    },
+    "warrior": {
+      "description": "10+ battles",
+      "condition": "battles_fought >= 10"
+    },
+    "sharpshooter": {
+      "description": "60%+ accuracy",
+      "condition": "accuracy >= 0.6 and battles_fought >= 5"
+    },
+    "survivor": {
+      "description": "75%+ survival rate",
+      "condition": "survival_rate >= 0.75 and battles_fought >= 5"
+    },
+    "champion": {
+      "description": "Top of leaderboard",
+      "condition": "rank == 1"
+    },
+    "undefeated": {
+      "description": "5+ wins, 0 losses",
+      "condition": "wins >= 5 and losses == 0"
+    },
+    "giant_slayer": {
+      "description": "Defeated ChampionBot",
+      "condition": "defeated_champion == true"
+    }
+  },
+  "statistics": {
+    "total_tanks": 1,
+    "total_battles": 0,
+    "total_submissions": 0,
+    "most_active_day": null,
+    "highest_score": 0
+  }
+}

@@ -253,7 +253,63 @@ class PredictorBot:
         self.ahead(100)
 ```
 
-## Part 6: Experiments and Challenges
+## Part 6: Test Your Prediction Skills! 🎯
+
+Time to see if your math works!
+
+### Battle Against WallsBot (Recommended!)
+
+**WallsBot** is the PERFECT opponent for testing your prediction skills because:
+- It moves in predictable patterns (along the walls)
+- It's fast enough to require prediction
+- It shoots back, so you'll know if you're dodging well!
+
+```bash
+python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/walls_bot.py
+```
+
+If your prediction math is working, you should hit WallsBot much more often than a tank without prediction!
+
+### Compare Your Results
+
+Try fighting with and without prediction:
+
+**With prediction (your new bot):**
+```bash
+python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/walls_bot.py
+```
+
+**Without prediction (Week 1 bot):**
+```bash
+python battle_runner.py Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/walls_bot.py
+```
+
+You should see a BIG difference in accuracy! 📈
+
+### Test Against Other Opponents
+
+**Easy (should win easily now):**
+```bash
+python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/sitting_duck.py
+python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/spin_bot.py
+```
+
+**Medium (good test):**
+```bash
+python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/walls_bot.py
+```
+
+**Hard (real challenge):**
+```bash
+python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/tracker_bot.py
+```
+
+### Battle ALL sample tanks:
+```bash
+python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py --all-samples
+```
+
+## Part 7: Experiments and Challenges
 
 ### Easy Challenges:
 1. **Distance Detector**: Print the distance to every enemy you scan
@@ -270,7 +326,7 @@ class PredictorBot:
 2. **Dodge Predictor**: Predict where enemy bullets will be and dodge them
 3. **Circular Prediction**: Predict enemies moving in circles
 
-## Part 7: Understanding the Math
+## Part 8: Understanding the Math
 
 ### Why Does This Work?
 
@@ -303,13 +359,27 @@ angle = atan2(x_diff, y_diff)
 
 This tells you "turn this many degrees to point at the enemy!"
 
+## Part 9: Submit Your Improved Tank! 🏆
+
+Ready to show off your math skills?
+
+1. Copy your `predictor_bot.py` to `Submissions/YourName/`
+2. Test it against walls_bot to make sure it works well
+3. Create a Pull Request with the title: `[Submission] YourName's Predictor Bot`
+4. Watch your tank compete with better accuracy!
+
+Your Week 2 tank should score much higher than your Week 1 tank because of prediction!
+
 ## Homework
 
 Before next week:
-1. Create your PredictorBot
-2. Test it against your Week 1 tank - which wins?
-3. Add at least one challenge feature
-4. Share your results!
+1. ✅ Create your PredictorBot with the math functions
+2. ✅ Test it against WallsBot - try to get at least 50% accuracy!
+3. ✅ Compare performance: Week 1 tank vs Week 2 tank
+4. ✅ Add at least one challenge feature
+5. ✅ Submit your improved tank via Pull Request
+
+**Bonus**: Can you beat TrackerBot? That's a real accomplishment!
 
 ## What's Next?
 

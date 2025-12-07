@@ -59,6 +59,13 @@ Follow these weekly tutorials in order:
 - Predict if you'll hit before wasting a shot
 - Become a tank master!
 
+### 🏗️ Week 6: Advanced Python - Classes and Clean Code
+**Location:** `Tutorials/Week6_AdvancedPython/`
+- Learn to organize code like a professional
+- Understand classes, inheritance, and polymorphism
+- Create reusable components with the strategy pattern
+- Build a modular tank architecture that's easy to modify and extend
+
 ## Sample Tanks
 
 Check out `Samples/` for example tanks:

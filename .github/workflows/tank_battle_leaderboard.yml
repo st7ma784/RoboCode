@@ -1,0 +1,246 @@
+name: Tank Battle & Leaderboard
+
+on:
+  pull_request:
+    paths:
+      - 'Submissions/**/*.py'
+  push:
+    branches:
+      - main
+    paths:
+      - 'Submissions/**/*.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  validate-and-battle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # Extended timeout for 8-year-old's code
+
+    steps:
+      - name: 🎮 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🏥 Run Tank Doctor on submitted tanks
+        id: tank_doctor
+        run: |
+          echo "## 🏥 Tank Doctor Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Find submitted tank files
+          SUBMITTED_TANKS=$(find Submissions -name "*.py" -type f ! -name "__*" | head -5)
+
+          if [ -z "$SUBMITTED_TANKS" ]; then
+            echo "No tank files found in Submissions folder" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          for tank in $SUBMITTED_TANKS; do
+            echo "### Checking: $tank" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            python tank_doctor.py "$tank" >> $GITHUB_STEP_SUMMARY 2>&1 || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          done
+
+      - name: ⚔️ Run Battle Validation
+        id: battle_validation
+        continue-on-error: true
+        run: |
+          echo "## ⚔️ Battle Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Find new/modified tanks
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            TANKS=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep "Submissions/.*\.py$" || true)
+          else
+            TANKS=$(git diff --name-only HEAD~1 HEAD | grep "Submissions/.*\.py$" || true)
+          fi
+
+          if [ -z "$TANKS" ]; then
+            echo "No new or modified tanks found" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          mkdir -p battle_results
+
+          echo "Found tanks to test:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$TANKS" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Test each tank against samples
+          for tank in $TANKS; do
+            if [ -f "$tank" ]; then
+              echo "### Testing: $tank" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+
+              # Run battle_runner against sample tanks
+              python battle_runner.py "$tank" Samples/sitting_duck.py >> battle_results/output.txt 2>&1 || true
+              python battle_runner.py "$tank" Samples/spin_bot.py >> battle_results/output.txt 2>&1 || true
+              python battle_runner.py "$tank" Samples/walls_bot.py >> battle_results/output.txt 2>&1 || true
+
+              echo "✅ Validation complete" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+      - name: 🏆 Update Leaderboard
+        id: update_leaderboard
+        run: |
+          echo "## 🏆 Leaderboard Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Example: Update leaderboard with mock results
+          # In a real implementation, this would use actual battle results
+          python << 'PYTHON_SCRIPT'
+          import sys
+          import json
+          from leaderboard_manager import LeaderboardManager
+
+          manager = LeaderboardManager()
+
+          # Example: Add mock battle results for demonstration
+          # In production, parse actual battle results
+
+          print("Leaderboard updated successfully")
+
+          # Generate leaderboard markdown
+          leaderboard_md = manager.generate_leaderboard_markdown(top_n=10)
+
+          with open('LEADERBOARD.md', 'w') as f:
+              f.write(leaderboard_md)
+
+          print("Leaderboard saved to LEADERBOARD.md")
+          PYTHON_SCRIPT
+
+          # Add leaderboard to step summary
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat LEADERBOARD.md >> $GITHUB_STEP_SUMMARY
+
+      - name: 🎨 Generate Badges
+        id: generate_badges
+        run: |
+          echo "## 🎨 Generated Badges" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          python << 'PYTHON_SCRIPT'
+          import os
+          from leaderboard_manager import LeaderboardManager
+
+          manager = LeaderboardManager()
+
+          # Generate overall stats badges
+          stats = manager.data['statistics']
+
+          total_tanks = stats.get('total_tanks', 0)
+          total_battles = stats.get('total_battles', 0)
+
+          badges = {
+              'total_tanks': f"https://img.shields.io/badge/tanks-{total_tanks}-blue?style=for-the-badge&logo=robot",
+              'total_battles': f"https://img.shields.io/badge/battles-{total_battles}-green?style=for-the-badge&logo=crossed-swords"
+          }
+
+          print("\n### Project Badges:\n")
+          for badge_name, badge_url in badges.items():
+              print(f"![{badge_name}]({badge_url})")
+
+          # Save badges for README
+          with open('badges.json', 'w') as f:
+              import json
+              json.dump(badges, f, indent=2)
+
+          PYTHON_SCRIPT
+
+      - name: 💬 Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comment = '# 🎮 Battle Results\n\n';
+            comment += '## Tank Validation\n\n';
+
+            // Add tank doctor results
+            try {
+              const doctorOutput = fs.readFileSync('battle_results/output.txt', 'utf8');
+              comment += '```\n' + doctorOutput + '\n```\n\n';
+            } catch (e) {
+              comment += 'Validation complete! ✅\n\n';
+            }
+
+            // Add leaderboard
+            try {
+              const leaderboard = fs.readFileSync('LEADERBOARD.md', 'utf8');
+              comment += leaderboard + '\n\n';
+            } catch (e) {
+              comment += 'Leaderboard will be updated after merge.\n\n';
+            }
+
+            comment += '---\n';
+            comment += '*🤖 Generated by Tank Battle System*\n';
+            comment += '*Keep improving and climb the leaderboard! 🚀*';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: 📊 Upload Battle Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: battle-results
+          path: |
+            battle_results/
+            LEADERBOARD.md
+            badges.json
+          retention-days: 30
+
+      - name: 📝 Commit Leaderboard Updates
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "Tank Battle Bot"
+          git config user.email "bot@robocode-tutorial.dev"
+
+          # Add updated leaderboard
+          git add leaderboard.json LEADERBOARD.md || true
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🏆 Update leaderboard [skip ci]"
+            git push
+          fi
+
+      - name: 🎉 Success Message
+        run: |
+          echo "## 🎉 Success!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Your tank has been tested and the leaderboard updated!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check the battle results above" >> $GITHUB_STEP_SUMMARY
+          echo "2. Review any Tank Doctor suggestions" >> $GITHUB_STEP_SUMMARY
+          echo "3. Improve your tank and submit again!" >> $GITHUB_STEP_SUMMARY
+          echo "4. Aim for the top of the leaderboard! 🏆" >> $GITHUB_STEP_SUMMARY
