@@ -66,6 +66,14 @@ Follow these weekly tutorials in order:
 - Create reusable components with the strategy pattern
 - Build a modular tank architecture that's easy to modify and extend
 
+### ⚔️ Week 7: Advanced Skirmisher - Battle Royale Mode
+**Location:** `Tutorials/Week7_AdvancedSkirmisher/`
+- Handle 30+ enemies at once efficiently
+- Learn data structures (lists, dictionaries, arrays)
+- Use NumPy for lightning-fast math on multiple targets
+- Implement smart target selection and threat assessment
+- Master vectorized operations and matrix math
+
 ## Sample Tanks
 
 Check out `Samples/` for example tanks:
