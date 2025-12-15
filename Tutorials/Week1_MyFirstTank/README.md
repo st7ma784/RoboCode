@@ -58,6 +58,34 @@ pip install -r requirements.txt
 
 This installs all the tools needed to run tank battles!
 
+### Step 3.5: Install Battle Server (Optional - For Visual Battles)
+
+**Good news:** You can start learning RIGHT NOW without this! The `battle_runner.py` validates your code works. But if you want to see **actual animated tank battles with graphics**, you'll need the Robocode Tank Royale server.
+
+**Quick Install Options:**
+
+**🎮 Option A: Pre-built Download (Easiest)**
+1. Visit [Robocode Tank Royale Releases](https://github.com/robocode-dev/tank-royale/releases)
+2. Download the latest release for your system (Windows/Mac/Linux)
+3. Extract the files
+4. Double-click the server to run it
+5. Open your web browser to `http://localhost:8080` to watch battles!
+
+**🐳 Option B: Docker (For Advanced Users)**
+```bash
+docker run -p 7654:7654 -p 8080:8080 robocode/tank-royale-server
+```
+
+**🔧 Option C: Build from Source (Requires Java 11+)**
+```bash
+git clone https://github.com/robocode-dev/tank-royale.git
+cd tank-royale
+./gradlew build
+./gradlew run
+```
+
+**Note:** Your tanks need a `.json` config file (already created for you!) to connect to the server. All tutorial and sample tanks now have these files ready to go!
+
 ### Step 4: Test Your Setup
 
 Let's make sure everything works:
@@ -67,6 +95,114 @@ python battle_runner.py Samples/sitting_duck.py Samples/spin_bot.py
 ```
 
 You should see a battle happen! If you see colorful text showing a battle, you're ready! 🎉
+
+### Step 5: Watch Your First Battle in the GUI! (Optional but Awesome! 🎮)
+
+**Two ways to run battles:**
+1. **Text mode** (battle_runner.py) - Quick validation, no setup needed
+2. **Visual GUI** (Tank Royale) - See animated battles with explosions! 💥
+
+Let's get the GUI working so you can SEE your tanks fight!
+
+#### 🎮 Starting the Visual Battle GUI
+
+**Step 5a: Start the Tank Royale Server**
+
+Find where you installed Robocode Tank Royale and start the server:
+
+**Windows:**
+- Double-click `robocode-tank-royale-server.exe` or `tank-royale.exe`
+
+**Mac/Linux:**
+```bash
+# If you downloaded the release:
+./robocode-tank-royale-server
+
+# If using Docker:
+docker run -p 7654:7654 -p 8080:8080 robocode/tank-royale-server
+```
+
+You should see a message saying the server is running on port 7654!
+
+**Step 5b: Open the Battle Arena in Your Browser**
+
+Open your web browser and go to:
+```
+http://localhost:8080
+```
+
+You should see the **Robocode Tank Royale** arena! 🎮
+
+**Step 5c: Launch Your Tank**
+
+Open a **new terminal** (keep the server running!) and run:
+
+```bash
+# From the RoboCode directory
+python run_gui_battle.py Tutorials/Week1_MyFirstTank/my_first_tank.py
+```
+
+You'll see:
+```
+🚀 STARTING TANK - Connect to GUI
+📺 Open your browser to: http://localhost:8080
+```
+
+**Step 5d: Start the Battle!**
+
+1. In your browser (at `http://localhost:8080`), you should see your tank listed
+2. Select 1-2 sample bots from `Samples/` folder (run them in separate terminals)
+3. Click **"Start Battle"**
+4. **WATCH YOUR TANK FIGHT!** 💥🎯
+
+#### 🎯 Quick Start Commands for GUI Battles
+
+**Launch sample opponents in separate terminals:**
+
+Terminal 1 (Your tank):
+```bash
+python run_gui_battle.py Tutorials/Week1_MyFirstTank/my_first_tank.py
+```
+
+Terminal 2 (Opponent 1):
+```bash
+python run_gui_battle.py Samples/sitting_duck.py
+```
+
+Terminal 3 (Opponent 2):
+```bash
+python run_gui_battle.py Samples/spin_bot.py
+```
+
+Then in browser (`http://localhost:8080`):
+- Select all 3 bots
+- Click "Start Battle"
+- Watch the action! 🎮
+
+#### 📝 Important Notes
+
+**Server Must Be Running:** The Tank Royale server must be running BEFORE you launch bots.
+
+**Multiple Terminals:** Each bot runs in its own terminal. Keep them open!
+
+**Stopping Bots:** Press `Ctrl+C` in each terminal to stop a bot.
+
+**Can't Connect?**
+- Make sure server is running (check for "Server running on port 7654")
+- Check browser is at `http://localhost:8080` (not https!)
+- Make sure no firewall is blocking ports 7654 or 8080
+
+#### 🆚 Battle Runner vs GUI
+
+| Feature | battle_runner.py | GUI (run_gui_battle.py) |
+|---------|------------------|-------------------------|
+| **Setup** | No extra setup | Need Tank Royale server |
+| **Speed** | Instant | Takes 30 seconds to setup |
+| **Visual** | Text only | Animated graphics! 🎨 |
+| **Purpose** | Quick testing | Watching epic battles |
+| **Best for** | Development | Showcasing your tank |
+
+**TIP:** Use `battle_runner.py` while coding, then use the GUI to watch your tank in action!
 
 ## Part 2: Getting on GitHub (10 minutes)
 

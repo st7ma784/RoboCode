@@ -1,0 +1,22 @@
+{
+  "name": "AntiGravityTank",
+  "version": "1.0.0",
+  "authors": [
+    "Student"
+  ],
+  "description": "Week 8: Anti-Gravity & Swarms - Physics-based repulsive forces, cluster detection, and formation analysis. Automatically escapes from enemy swarms!",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "AntiGravityTank",
+  "botModule": "anti_gravity_tank"
+}

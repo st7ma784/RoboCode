@@ -1,0 +1,22 @@
+{
+  "name": "PredictorBot",
+  "version": "1.0.0",
+  "authors": [
+    "Student"
+  ],
+  "description": "Week 2: Trigonometry & Prediction - Uses math to predict enemy movement. Learn distance calculation, angle computation, and bullet speed physics!",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "PredictorBot",
+  "botModule": "predictor_bot"
+}

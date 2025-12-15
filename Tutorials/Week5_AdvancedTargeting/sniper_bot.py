@@ -12,42 +12,37 @@ Combines all skills from Weeks 1-5:
 """
 import math
 import random
+from robocode_tank_royale.bot_api import BaseBot, BotInfo
 
-class SniperBot:
+class SniperBot(BaseBot):
+    """Advanced targeting with hit probability calculations"""
+
     def __init__(self):
-        self.name = "SniperBot"
-
-        # Position and state (set by game engine)
-        self.x = 0
-        self.y = 0
-        self.heading = 0
-        self.energy = 100
-
-        # Arena info
-        self.battlefield_width = 800
-        self.battlefield_height = 600
-
+        super().__init__()
         # Statistics tracking
         self.shots_fired = 0
         self.shots_hit = 0
         self.enemy_energy = None
         self.enemy_last_position = None
 
-    def run(self):
+    async def run(self):
         """Main loop - smart movement and scanning"""
-        # Use boundary checking (Week 3)
-        if not self.is_too_close_to_wall(50):
-            # Safe to move
-            self.ahead(40)
-            self.turn_right(15)
-        else:
-            # Avoid walls
-            self.avoid_walls()
+        while True:
+            # Use boundary checking (Week 3)
+            if not self.is_too_close_to_wall(50):
+                # Safe to move
+                self.forward(40)
+                self.turn_right(15)
+            else:
+                # Avoid walls
+                self.avoid_walls()
 
-        # Keep radar sweeping
-        self.turn_radar_right(45)
+            # Keep radar sweeping
+            self.turn_radar_right(45)
+            
+            await self.go()
 
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_bot(self, event):
         """
         Advanced targeting system - the heart of Week 5!
 
@@ -58,8 +53,13 @@ class SniperBot:
         - Shot simulation
         - Energy management
         """
-        distance = scanned_robot.distance
-        velocity = scanned_robot.velocity
+        distance = event.distance
+        velocity = event.speed
+
+        # Calculate enemy position from bearing
+        bearing_rad = math.radians(event.bearing)
+        enemy_x = self.x + distance * math.sin(bearing_rad)
+        enemy_y = self.y + distance * math.cos(bearing_rad)
 
         # Step 1: Choose optimal power based on hit probability
         power = self.choose_optimal_power(distance, velocity)
@@ -69,17 +69,17 @@ class SniperBot:
         time_to_hit = distance / bullet_speed
 
         future_x, future_y = self.predict_position(
-            scanned_robot.x,
-            scanned_robot.y,
+            enemy_x,
+            enemy_y,
             velocity,
-            scanned_robot.heading,
+            event.direction,
             time_to_hit
         )
 
         # Step 3: Validate prediction is in bounds (Week 3)
         if not self.is_valid_target(future_x, future_y):
             print("⚠️  Predicted position out of bounds - using current position")
-            future_x, future_y = scanned_robot.x, scanned_robot.y
+            future_x, future_y = enemy_x, enemy_y
 
         # Step 4: Simulate the shot
         will_hit, hit_x, hit_y = self.simulate_shot(future_x, future_y, power)
@@ -101,7 +101,7 @@ class SniperBot:
 
         # Step 6: Track enemy energy to detect when they fire
         if self.enemy_energy is not None:
-            energy_drop = self.enemy_energy - scanned_robot.energy
+            energy_drop = self.enemy_energy - event.energy
 
             if 0 < energy_drop <= 3:
                 # Enemy just fired!
@@ -111,8 +111,8 @@ class SniperBot:
                 # Enemy took damage
                 print(f"✓ Enemy took {energy_drop:.1f} damage!")
 
-        self.enemy_energy = scanned_robot.energy
-        self.enemy_last_position = (scanned_robot.x, scanned_robot.y)
+        self.enemy_energy = event.energy
+        self.enemy_last_position = (enemy_x, enemy_y)
 
     def choose_optimal_power(self, distance, velocity):
         """
@@ -216,8 +216,8 @@ class SniperBot:
             bullet_y += bullet_speed * math.cos(angle_rad)
 
             # Check if hit wall
-            if (bullet_x < 0 or bullet_x > self.battlefield_width or
-                bullet_y < 0 or bullet_y > self.battlefield_height):
+            if (bullet_x < 0 or bullet_x > self.arena_width or
+                bullet_y < 0 or bullet_y > self.arena_height):
                 # Bullet went out of bounds
                 return (False, bullet_x, bullet_y)
 
@@ -263,7 +263,7 @@ class SniperBot:
         if dodge_move == 1:
             # Quick turn and advance
             self.turn_right(90)
-            self.ahead(80)
+            self.forward(80)
         elif dodge_move == 2:
             # Turn and retreat
             self.turn_left(90)
@@ -271,14 +271,14 @@ class SniperBot:
         else:
             # Sudden direction change
             self.turn_right(135)
-            self.ahead(70)
+            self.forward(70)
 
     def is_too_close_to_wall(self, margin):
         """Check if near any wall (from Week 3)"""
         return (self.x < margin or
-                self.x > self.battlefield_width - margin or
+                self.x > self.arena_width - margin or
                 self.y < margin or
-                self.y > self.battlefield_height - margin)
+                self.y > self.arena_height - margin)
 
     def avoid_walls(self):
         """Turn away from nearest wall (from Week 3)"""
@@ -286,39 +286,48 @@ class SniperBot:
         self.back(50)
 
         # Turn toward center
-        center_x = self.battlefield_width / 2
-        center_y = self.battlefield_height / 2
+        center_x = self.arena_width / 2
+        center_y = self.arena_height / 2
         angle_to_center = self.calculate_angle(self.x, self.y, center_x, center_y)
         self.turn_to(angle_to_center)
 
     def is_valid_target(self, x, y):
         """Check if target is in bounds (from Week 3)"""
         margin = 20
-        return (margin < x < self.battlefield_width - margin and
-                margin < y < self.battlefield_height - margin)
+        return (margin < x < self.arena_width - margin and
+                margin < y < self.arena_height - margin)
 
     def calculate_angle(self, from_x, from_y, to_x, to_y):
         """Calculate angle from one point to another (from Week 2)"""
         return math.degrees(math.atan2(to_x - from_x, to_y - from_y))
 
-    def on_hit_by_bullet(self, bullet):
+    def turn_to(self, angle):
+        """Turn to absolute angle"""
+        turn_amount = angle - self.direction
+        while turn_amount > 180:
+            turn_amount -= 360
+        while turn_amount < -180:
+            turn_amount += 360
+        self.turn_right(turn_amount)
+
+    def on_hit_by_bullet(self, event):
         """React to being hit"""
         accuracy = (self.shots_hit / self.shots_fired * 100) if self.shots_fired > 0 else 0
         print(f"💥 Hit! Energy: {self.energy:.0f}, My accuracy: {accuracy:.1f}%")
         self.dodge()
 
-    def on_bullet_hit(self, bullet_hit):
+    def on_bullet_hit(self, event):
         """Track successful hits"""
         self.shots_hit += 1
         accuracy = (self.shots_hit / self.shots_fired * 100) if self.shots_fired > 0 else 0
         print(f"✓ CONFIRMED HIT! Accuracy: {accuracy:.1f}% ({self.shots_hit}/{self.shots_fired})")
 
-    def on_bullet_missed(self, bullet):
+    def on_bullet_missed(self, event):
         """Track misses for learning"""
         accuracy = (self.shots_hit / self.shots_fired * 100) if self.shots_fired > 0 else 0
         print(f"✗ Miss. Accuracy: {accuracy:.1f}%")
 
-    def on_win(self, event):
+    def on_won(self, event):
         """Victory statistics"""
         accuracy = (self.shots_hit / self.shots_fired * 100) if self.shots_fired > 0 else 0
         print(f"\n🏆 VICTORY! 🏆")
@@ -335,29 +344,7 @@ class SniperBot:
         print(f"  Accuracy: {accuracy:.1f}%")
         print(f"  Shots: {self.shots_hit}/{self.shots_fired}")
 
-    # ============================================
-    # Game engine methods (provided by framework)
-    # ============================================
-    def ahead(self, distance):
-        pass
 
-    def back(self, distance):
-        pass
-
-    def turn_right(self, degrees):
-        pass
-
-    def turn_left(self, degrees):
-        pass
-
-    def turn_to(self, degrees):
-        pass
-
-    def turn_radar_right(self, degrees):
-        pass
-
-    def turn_gun_to(self, angle):
-        pass
-
-    def fire(self, power):
-        pass
+if __name__ == "__main__":
+    bot = SniperBot()
+    bot.start()

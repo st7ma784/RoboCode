@@ -1,0 +1,22 @@
+{
+  "name": "SniperBot",
+  "version": "1.0.0",
+  "authors": [
+    "Student"
+  ],
+  "description": "Week 5: Advanced Targeting - Master precision shooting with hit probability calculation, shot simulation, and optimal power selection. Smart energy management!",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "SniperBot",
+  "botModule": "sniper_bot"
+}

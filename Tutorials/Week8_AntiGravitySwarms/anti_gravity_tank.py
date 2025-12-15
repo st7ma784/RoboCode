@@ -11,6 +11,7 @@ This tank demonstrates:
 
 Perfect for escaping from enemy swarms!
 """
+from robocode_tank_royale.bot_api import BaseBot, BotInfo
 import numpy as np
 import math
 
@@ -177,8 +178,8 @@ class AntiGravityMovement:
         # Get repulsion from walls
         wall_fx, wall_fy = self.add_wall_repulsion(
             tank.x, tank.y,
-            tank.battlefield_width,
-            tank.battlefield_height
+            tank.arena_width,
+            tank.arena_height
         )
         
         # Combine all forces
@@ -197,10 +198,10 @@ class AntiGravityMovement:
             force_magnitude = np.sqrt(total_fx**2 + total_fy**2)
             move_speed = min(40, 20 + force_magnitude / 100)
             
-            tank.ahead(move_speed)
+            tank.forward(move_speed)
         else:
             # No forces, move normally
-            tank.ahead(20)
+            tank.forward(20)
 
 
 class ClusterDetector:
@@ -281,7 +282,7 @@ class ClusterDetector:
         return info
 
 
-class AntiGravityTank:
+class AntiGravityTank(BaseBot):
     """
     Advanced tank with physics-based anti-gravity movement
     
@@ -296,6 +297,7 @@ class AntiGravityTank:
     """
     
     def __init__(self):
+        super().__init__()
         self.name = "AntiGravityTank"
         
         # Systems
@@ -312,66 +314,84 @@ class AntiGravityTank:
         self.max_enemies_seen = 0
         self.clusters_detected = 0
     
-    def run(self):
+    def turn_to(self, target_angle):
+        """Helper to turn to absolute angle"""
+        current = self.direction % 360
+        target = target_angle % 360
+        diff = (target - current + 180) % 360 - 180
+        if diff < 0:
+            self.turn_left(abs(diff))
+        else:
+            self.turn_right(diff)
+    
+    async def run(self):
         """
         Main loop - runs every game tick
         """
-        self.tick += 1
-        
-        # Cleanup old enemy data periodically
-        if self.tick % 20 == 0:
-            self.enemies.cleanup(self.tick)
-        
-        # Use anti-gravity movement!
-        # This automatically moves away from all enemies
-        self.movement.move(self, self.enemies)
-        
-        # Sweep radar to find enemies
-        self.turn_radar_right(self.radar_direction * 45)
-        if self.tick % 8 == 0:
-            self.radar_direction *= -1  # Reverse direction
-        
-        # Engage targets
-        if self.enemies.count() > 0:
-            self.engage_best_target()
-        
-        # Detect and report clusters periodically
-        if self.tick % 100 == 0 and self.enemies.count() > 2:
-            clusters = self.cluster_detector.find_clusters(self.enemies)
-            if clusters:
-                cluster_info = self.cluster_detector.get_cluster_info(
-                    self.enemies, clusters
-                )
-                self.clusters_detected += len(clusters)
-                
-                # Find most dangerous cluster
-                most_dangerous = max(cluster_info, key=lambda c: c['threat_level'])
-                print(f"⚠️  Detected {len(clusters)} enemy clusters! "
-                      f"Biggest threat: {most_dangerous['size']} enemies")
-        
-        # Track statistics
-        if self.enemies.count() > self.max_enemies_seen:
-            self.max_enemies_seen = self.enemies.count()
+        while True:
+            self.tick += 1
+            
+            # Cleanup old enemy data periodically
+            if self.tick % 20 == 0:
+                self.enemies.cleanup(self.tick)
+            
+            # Use anti-gravity movement!
+            # This automatically moves away from all enemies
+            self.movement.move(self, self.enemies)
+            
+            # Sweep radar to find enemies
+            self.turn_radar_right(self.radar_direction * 45)
+            if self.tick % 8 == 0:
+                self.radar_direction *= -1  # Reverse direction
+            
+            # Engage targets
+            if self.enemies.count() > 0:
+                self.engage_best_target()
+            
+            # Detect and report clusters periodically
+            if self.tick % 100 == 0 and self.enemies.count() > 2:
+                clusters = self.cluster_detector.find_clusters(self.enemies)
+                if clusters:
+                    cluster_info = self.cluster_detector.get_cluster_info(
+                        self.enemies, clusters
+                    )
+                    self.clusters_detected += len(clusters)
+                    
+                    # Find most dangerous cluster
+                    most_dangerous = max(cluster_info, key=lambda c: c['threat_level'])
+                    print(f"⚠️  Detected {len(clusters)} enemy clusters! "
+                          f"Biggest threat: {most_dangerous['size']} enemies")
+            
+            # Track statistics
+            if self.enemies.count() > self.max_enemies_seen:
+                self.max_enemies_seen = self.enemies.count()
+            
+            await self.go()
     
-    def on_scanned_robot(self, scanned):
+    def on_scanned_bot(self, event):
         """
         Called when radar detects an enemy
         
         Updates our enemy tracking system
         """
-        # Convert enemy heading and velocity to velocity components
-        heading_rad = math.radians(scanned.heading)
-        vx = scanned.velocity * math.sin(heading_rad)
-        vy = scanned.velocity * math.cos(heading_rad)
+        # Calculate enemy position from bearing
+        bearing_rad = math.radians(event.bearing)
+        enemy_x = self.x + event.distance * math.sin(bearing_rad)
+        enemy_y = self.y + event.distance * math.cos(bearing_rad)
+        
+        # Convert enemy direction and velocity to velocity components
+        heading_rad = math.radians(event.direction)
+        vx = event.speed * math.sin(heading_rad)
+        vy = event.speed * math.cos(heading_rad)
         
         # Update tracker
         self.enemies.update(
-            enemy_id=scanned.name,
-            x=scanned.x,
-            y=scanned.y,
+            enemy_id=event.scanned_bot_id,
+            x=enemy_x,
+            y=enemy_y,
             vx=vx,
             vy=vy,
-            energy=scanned.energy,
+            energy=event.energy,
             tick=self.tick
         )
     
@@ -437,7 +457,7 @@ class AntiGravityTank:
         Give ourselves an extra boost to escape danger!
         """
         # Quick acceleration away from danger
-        self.ahead(60)
+        self.forward(60)
     
     def on_hit_wall(self, event):
         """React when we hit a wall"""
@@ -449,3 +469,9 @@ class AntiGravityTank:
         """Called when any robot dies"""
         # Could track successful eliminations here
         pass
+
+
+# Main entry point
+if __name__ == "__main__":
+    bot = AntiGravityTank()
+    bot.start()

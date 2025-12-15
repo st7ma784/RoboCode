@@ -1,0 +1,22 @@
+{
+  "name": "BoundaryBot",
+  "version": "1.0.0",
+  "authors": [
+    "Student"
+  ],
+  "description": "Week 3: Boundary Checking & Arena Safety - Never hits walls! Learn conditional logic, arena dimensions, and target validation.",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "BoundaryBot",
+  "botModule": "boundary_bot"
+}

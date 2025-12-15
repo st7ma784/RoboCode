@@ -1,0 +1,22 @@
+{
+  "name": "FinalBossTank",
+  "version": "1.0.0",
+  "authors": [
+    "Claude Code"
+  ],
+  "description": "The Ultimate Tutorial Synthesis - Combines ALL 8 weeks of RoboCode tutorials into one comprehensive tank. Features anti-gravity movement, cluster detection, multi-enemy tracking with NumPy, hit probability calculations, shot simulation, and adaptive movement patterns.",
+  "url": "https://github.com/anthropics/claude-code",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "FinalBossTank",
+  "botModule": "final_boss_tank"
+}

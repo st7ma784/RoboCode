@@ -14,24 +14,26 @@ Perfect for:
 - Your first opponent!
 """
 
-class SittingDuck:
-    def __init__(self):
-        """Initialize the tank"""
-        self.name = "SittingDuck"
+from robocode_tank_royale.bot_api import BaseBot, BotInfo
 
-    def run(self):
+class SittingDuck(BaseBot):
+    """The simplest tank - doesn't move, just shoots"""
+
+    async def run(self):
         """
         Main loop - runs every game tick
 
         This tank does almost nothing!
         Just spins its radar to look for enemies.
         """
-        # Spin radar to scan for enemies
-        self.turn_radar_right(45)
+        while True:
+            # Spin radar to scan for enemies
+            self.turn_radar_right(45)
 
-        # That's it! No movement, minimal strategy
+            # That's it! No movement, minimal strategy
+            await self.go()
 
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_bot(self, event):
         """
         When we see an enemy - shoot!
 
@@ -40,22 +42,13 @@ class SittingDuck:
         # Just shoot with medium power
         self.fire(2)
 
-    def on_hit_by_bullet(self, bullet):
+    def on_hit_by_bullet(self, event):
         """
         When hit by a bullet - just complain!
 
         We don't even try to dodge.
         """
         print("Ouch! I got hit!")
-
-    # Game engine methods
-    def turn_radar_right(self, degrees):
-        """Provided by game engine"""
-        pass
-
-    def fire(self, power):
-        """Provided by game engine"""
-        pass
 
 
 # Why this tank is weak:
@@ -64,3 +57,7 @@ class SittingDuck:
 # ❌ No aiming (shoots wherever radar happens to be)
 # ❌ No strategy
 # ✓ But it's simple to understand!
+
+if __name__ == "__main__":
+    bot = SittingDuck()
+    bot.start()

@@ -1,0 +1,22 @@
+{
+  "name": "ProfessionalTank",
+  "version": "1.0.0",
+  "authors": [
+    "Student"
+  ],
+  "description": "Week 6: Advanced Python & Clean Code - Professional architecture with modular classes, strategy pattern, inheritance, and composition. Learn OOP principles!",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "ProfessionalTank",
+  "botModule": "professional_tank"
+}

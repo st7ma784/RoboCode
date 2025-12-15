@@ -1,0 +1,22 @@
+{
+  "name": "WallsBot",
+  "version": "1.0.0",
+  "authors": [
+    "RoboCode Tutorial"
+  ],
+  "description": "Drives around the arena perimeter with predictable movement patterns. Good for testing prediction algorithms! Difficulty: ★★★ (Level 3 - Intermediate)",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "WallsBot",
+  "botModule": "walls_bot"
+}

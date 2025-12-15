@@ -85,7 +85,7 @@ class KidFriendlyErrorHelper:
             },
             'NameError': {
                 'title': '🔧 Unknown Name',
-                'explanation': f'Python doesn\'t know what "{error_msg.split("'")[1] if "'" in error_msg else "something"}" means. Maybe you forgot to define it, or there\'s a typo?',
+                'explanation': f'Python doesn\'t know what "{error_msg.split(chr(39))[1] if chr(39) in error_msg else "something"}" means. Maybe you forgot to define it, or there\'s a typo?',
                 'fix': 'Check spelling carefully. Remember: Python is case-sensitive (X is different from x)!',
                 'example': '''
                 If error says "name 'selff' is not defined":

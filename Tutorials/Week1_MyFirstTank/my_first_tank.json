@@ -1,0 +1,22 @@
+{
+  "name": "MyFirstTank",
+  "version": "1.0.0",
+  "authors": [
+    "Student"
+  ],
+  "description": "Week 1: My First Tank - Learn the basics of tank programming including movement, shooting, and event handling. Your first step into RoboCode!",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "MyFirstTank",
+  "botModule": "my_first_tank"
+}

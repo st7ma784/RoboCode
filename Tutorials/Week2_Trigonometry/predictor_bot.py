@@ -5,22 +5,22 @@ Week 2 Tutorial - Learning Trigonometry
 This tank uses math to predict where enemies will be and shoots at their future position.
 """
 import math
+from robocode_tank_royale.bot_api import BaseBot, BotInfo
 
-class PredictorBot:
-    def __init__(self):
-        self.name = "PredictorBot"
-        # We'll store our position (game engine sets these)
-        self.x = 0
-        self.y = 0
+class PredictorBot(BaseBot):
+    """Uses trigonometry to predict enemy movement and aim ahead"""
 
-    def run(self):
+    async def run(self):
         """Main loop - runs every game tick"""
-        # Spin radar to look for enemies
-        self.turn_radar_right(45)
+        while True:
+            # Spin radar to look for enemies
+            self.turn_radar_right(45)
 
-        # Move in a circle to dodge bullets
-        self.ahead(50)
-        self.turn_right(15)
+            # Move in a circle to dodge bullets
+            self.forward(50)
+            self.turn_right(15)
+            
+            await self.go()
 
     def calculate_angle(self, from_x, from_y, to_x, to_y):
         """
@@ -61,21 +61,26 @@ class PredictorBot:
 
         return future_x, future_y
 
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_bot(self, event):
         """When we see an enemy - predict and shoot!"""
         # Bullet speed based on power (official formula)
         bullet_power = 2
         bullet_speed = 20 - 3 * bullet_power
 
         # Time for bullet to reach current position
-        time_to_hit = scanned_robot.distance / bullet_speed
+        time_to_hit = event.distance / bullet_speed
+
+        # Calculate enemy position from bearing
+        bearing_rad = math.radians(event.bearing)
+        enemy_x = self.x + event.distance * math.sin(bearing_rad)
+        enemy_y = self.y + event.distance * math.cos(bearing_rad)
 
         # Predict where enemy will be
         future_x, future_y = self.predict_position(
-            scanned_robot.x,
-            scanned_robot.y,
-            scanned_robot.velocity,
-            scanned_robot.heading,
+            enemy_x,
+            enemy_y,
+            event.speed,
+            event.direction,
             time_to_hit
         )
 
@@ -86,39 +91,24 @@ class PredictorBot:
         self.turn_gun_to(angle)
         self.fire(bullet_power)
 
-        print(f"Enemy spotted at distance {scanned_robot.distance:.1f}")
+        print(f"Enemy spotted at distance {event.distance:.1f}")
         print(f"Predicted future position: ({future_x:.1f}, {future_y:.1f})")
 
-    def on_hit_by_bullet(self, hit_by_bullet):
+    def on_hit_by_bullet(self, event):
         """React when hit - dodge!"""
         print("Ouch! Dodging!")
         # Turn perpendicular to the bullet to dodge better
         self.turn_right(90)
-        self.ahead(100)
+        self.forward(100)
 
-    def on_hit_wall(self, hit_wall):
+    def on_hit_wall(self, event):
         """React when we hit a wall"""
         print("Hit a wall! Backing up...")
         # Back up and turn
         self.back(50)
         self.turn_right(90)
 
-    # These methods are provided by the game engine
-    # We're just defining them here for reference
-    def turn_radar_right(self, degrees):
-        pass
 
-    def ahead(self, distance):
-        pass
-
-    def turn_right(self, degrees):
-        pass
-
-    def turn_gun_to(self, angle):
-        pass
-
-    def fire(self, power):
-        pass
-
-    def back(self, distance):
-        pass
+if __name__ == "__main__":
+    bot = PredictorBot()
+    bot.start()

@@ -6,16 +6,13 @@ This tank changes movement patterns randomly and reacts differently to events.
 """
 import random
 import math
+from robocode_tank_royale.bot_api import BaseBot, BotInfo
 
-class TricksterBot:
+class TricksterBot(BaseBot):
+    """Uses unpredictable movement patterns to avoid being hit"""
+
     def __init__(self):
-        self.name = "TricksterBot"
-        # Position (set by game engine)
-        self.x = 0
-        self.y = 0
-        self.heading = 0
-        self.energy = 100
-
+        super().__init__()
         # Time tracking
         self.time = 0
 
@@ -23,23 +20,24 @@ class TricksterBot:
         self.current_pattern = "random_walk"
         self.pattern_change_countdown = 50  # Change pattern every 50 ticks
 
-    def run(self):
+    async def run(self):
         """Main loop with changing strategies"""
-        self.time += 1
+        while True:
+            self.time += 1
 
-        # Time to change patterns?
-        if self.pattern_change_countdown <= 0:
-            old_pattern = self.current_pattern
-            self.current_pattern = random.choice([
-                "zigzag",
-                "spiral",
-                "random_walk",
-                "stop_and_go"
-            ])
-            # Don't repeat the same pattern
-            while self.current_pattern == old_pattern:
+            # Time to change patterns?
+            if self.pattern_change_countdown <= 0:
+                old_pattern = self.current_pattern
                 self.current_pattern = random.choice([
                     "zigzag",
+                    "spiral",
+                    "random_walk",
+                    "stop_and_go"
+                ])
+                # Don't repeat the same pattern
+                while self.current_pattern == old_pattern:
+                    self.current_pattern = random.choice([
+                        "zigzag",
                     "spiral",
                     "random_walk",
                     "stop_and_go"
@@ -48,24 +46,26 @@ class TricksterBot:
             self.pattern_change_countdown = random.randint(40, 70)  # Random duration
             print(f"🔄 Switching to {self.current_pattern} pattern!")
 
-        # Execute current pattern
-        if self.current_pattern == "zigzag":
-            self.zigzag_movement()
-        elif self.current_pattern == "spiral":
-            self.spiral_movement()
-        elif self.current_pattern == "random_walk":
-            self.random_walk()
-        elif self.current_pattern == "stop_and_go":
-            self.stop_and_go()
+            # Execute current pattern
+            if self.current_pattern == "zigzag":
+                self.zigzag_movement()
+            elif self.current_pattern == "spiral":
+                self.spiral_movement()
+            elif self.current_pattern == "random_walk":
+                self.random_walk()
+            elif self.current_pattern == "stop_and_go":
+                self.stop_and_go()
 
-        self.pattern_change_countdown -= 1
+            self.pattern_change_countdown -= 1
 
-        # Keep radar spinning independently
-        self.turn_radar_right(45)
+            # Keep radar spinning independently
+            self.turn_radar_right(45)
+            
+            await self.go()
 
     def zigzag_movement(self):
         """Move in a zigzag pattern"""
-        self.ahead(80)
+        self.forward(80)
 
         # Random zigzag
         if random.random() < 0.5:
@@ -77,14 +77,14 @@ class TricksterBot:
         """Spiral outward from current position"""
         # Distance increases over time
         distance = 20 + (self.time % 80)
-        self.ahead(distance)
+        self.forward(distance)
         self.turn_right(25)
 
     def random_walk(self):
         """Random but smooth movement"""
         # Random distance
         distance = random.randint(40, 100)
-        self.ahead(distance)
+        self.forward(distance)
 
         # Small random turns for smooth movement
         angle = random.randint(-25, 25)
@@ -101,18 +101,20 @@ class TricksterBot:
             self.turn_right(random.randint(60, 180))
         else:
             # Keep moving
-            self.ahead(60)
+            self.forward(60)
             self.turn_right(12)
 
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_bot(self, event):
         """Adaptive tactics based on distance and situation"""
-        distance = scanned_robot.distance
+        distance = event.distance
+
+        # Calculate enemy position from bearing
+        bearing_rad = math.radians(event.bearing)
+        enemy_x = self.x + distance * math.sin(bearing_rad)
+        enemy_y = self.y + distance * math.cos(bearing_rad)
 
         # Calculate aim angle
-        angle = self.calculate_angle(
-            self.x, self.y,
-            scanned_robot.x, scanned_robot.y
-        )
+        angle = self.calculate_angle(self.x, self.y, enemy_x, enemy_y)
 
         # Choose tactics based on range
         if distance < 150:
@@ -123,7 +125,7 @@ class TricksterBot:
 
             # Charge forward (risky but aggressive)
             if self.energy > 50:
-                self.ahead(30)
+                self.forward(30)
             else:
                 # Low energy - retreat!
                 self.back(30)
@@ -139,7 +141,7 @@ class TricksterBot:
                 self.turn_right(90)
             else:
                 self.turn_left(90)
-            self.ahead(40)
+            self.forward(40)
 
         else:
             # LONG RANGE - Sniper mode
@@ -151,7 +153,7 @@ class TricksterBot:
             if random.random() < 0.3:
                 self.back(40)
 
-    def on_hit_by_bullet(self, bullet):
+    def on_hit_by_bullet(self, event):
         """React unpredictably when hit"""
         print(f"💥 HIT! Energy: {self.energy}")
 
@@ -161,7 +163,7 @@ class TricksterBot:
         if reaction == 1:
             # Quick forward dodge
             print("  → Quick dodge forward!")
-            self.ahead(100)
+            self.forward(100)
 
         elif reaction == 2:
             # Sharp turn and retreat
@@ -173,26 +175,25 @@ class TricksterBot:
             # Aggressive counter-attack
             print("  → Counter-attack!")
             self.turn_left(90)
-            self.ahead(120)
+            self.forward(120)
 
         elif reaction == 4:
             # Spin move (confuse enemy)
             print("  → Spin move!")
             self.turn_right(random.randint(120, 240))
-            self.ahead(60)
+            self.forward(60)
 
         else:
             # Stop and shoot back
             print("  → Shoot back!")
             # Turn gun toward where bullet came from
-            # (Note: bullet.bearing is direction relative to our heading)
-            self.turn_gun_to(bullet.bearing)
+            self.turn_gun_to(self.direction + event.bullet_bearing)
             self.fire(3)
 
         # Force immediate pattern change after being hit
         self.pattern_change_countdown = 0
 
-    def on_hit_wall(self, wall):
+    def on_hit_wall(self, event):
         """Tactical wall bounce"""
         print("🧱 Wall collision! Bouncing off...")
 
@@ -207,16 +208,14 @@ class TricksterBot:
             self.turn_left(angle)
 
         # Burst forward
-        self.ahead(80)
+        self.forward(80)
 
         # Change pattern after wall hit
         self.pattern_change_countdown = 0
 
-    def on_robot_death(self, death):
-        """Celebrate victory!"""
-        print(f"🎉 Destroyed {death.name}!")
-        # Victory spin!
-        self.turn_right(360)
+    def on_death(self, event):
+        """Called when bot dies"""
+        print("💀 Defeated!")
 
     def calculate_angle(self, from_x, from_y, to_x, to_y):
         """
@@ -226,33 +225,8 @@ class TricksterBot:
         """
         return math.degrees(math.atan2(to_x - from_x, to_y - from_y))
 
-    # ============================================
-    # Game engine methods (provided by framework)
-    # ============================================
-    def ahead(self, distance):
-        """Move forward"""
-        pass
 
-    def back(self, distance):
-        """Move backward"""
-        pass
+if __name__ == "__main__":
+    bot = TricksterBot()
+    bot.start()
 
-    def turn_right(self, degrees):
-        """Turn tank right"""
-        pass
-
-    def turn_left(self, degrees):
-        """Turn tank left"""
-        pass
-
-    def turn_radar_right(self, degrees):
-        """Turn radar right"""
-        pass
-
-    def turn_gun_to(self, angle):
-        """Aim gun at absolute angle"""
-        pass
-
-    def fire(self, power):
-        """Fire bullet with given power (1-3)"""
-        pass

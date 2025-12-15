@@ -11,6 +11,7 @@ This tank demonstrates:
 
 Perfect for battle royale scenarios with 10+ enemies!
 """
+from robocode_tank_royale.bot_api import BaseBot, BotInfo
 import numpy as np
 import math
 import random
@@ -260,7 +261,7 @@ class TargetSelector:
         }
 
 
-class SkirmisherTank:
+class SkirmisherTank(BaseBot):
     """
     Advanced tank optimized for multi-enemy battles
     
@@ -276,6 +277,7 @@ class SkirmisherTank:
     """
     
     def __init__(self):
+        super().__init__()
         self.name = "SkirmisherTank"
         
         # Enemy tracking system
@@ -293,30 +295,33 @@ class SkirmisherTank:
         self.shots_fired = 0
         self.enemies_tracked_max = 0
     
-    def run(self):
+    async def run(self):
         """
         Main loop - runs every game tick
         """
-        self.tick += 1
-        
-        # Periodic cleanup of old enemy data
-        if self.tick % 20 == 0:
-            self.enemies.cleanup(self.tick, max_age=100)
+        while True:
+            self.tick += 1
             
-            # Track statistics
-            current_count = self.enemies.count()
-            if current_count > self.enemies_tracked_max:
-                self.enemies_tracked_max = current_count
-        
-        # Movement - wall avoidance
-        self.move_with_wall_avoidance()
-        
-        # Radar - sweep to find enemies
-        self.sweep_radar()
-        
-        # If we have tracked enemies, engage the best one
-        if self.enemies.count() > 0:
-            self.engage_best_target()
+            # Periodic cleanup of old enemy data
+            if self.tick % 20 == 0:
+                self.enemies.cleanup(self.tick, max_age=100)
+                
+                # Track statistics
+                current_count = self.enemies.count()
+                if current_count > self.enemies_tracked_max:
+                    self.enemies_tracked_max = current_count
+            
+            # Movement - wall avoidance
+            self.move_with_wall_avoidance()
+            
+            # Radar - sweep to find enemies
+            self.sweep_radar()
+            
+            # If we have tracked enemies, engage the best one
+            if self.enemies.count() > 0:
+                self.engage_best_target()
+            
+            await self.go()
     
     def move_with_wall_avoidance(self):
         """
@@ -329,11 +334,11 @@ class SkirmisherTank:
         # Check if near walls
         if self.x < margin:
             self.turn_right(90)
-        elif self.x > self.battlefield_width - margin:
+        elif self.x > self.arena_width - margin:
             self.turn_left(90)
         elif self.y < margin:
             self.turn_right(90)
-        elif self.y > self.battlefield_height - margin:
+        elif self.y > self.arena_height - margin:
             self.turn_left(90)
         
         # Add some randomness for unpredictability
@@ -341,7 +346,7 @@ class SkirmisherTank:
             self.turn_right(random.randint(-30, 30))
         
         # Move forward
-        self.ahead(20)
+        self.forward(20)
     
     def sweep_radar(self):
         """
@@ -355,25 +360,30 @@ class SkirmisherTank:
         if self.tick % 8 == 0:
             self.radar_direction *= -1
     
-    def on_scanned_robot(self, scanned):
+    def on_scanned_bot(self, event):
         """
         Called when radar detects an enemy
         
         Add or update enemy in our tracking system
         """
-        # Convert heading and velocity to velocity components
-        heading_rad = math.radians(scanned.heading)
-        vx = scanned.velocity * math.sin(heading_rad)
-        vy = scanned.velocity * math.cos(heading_rad)
+        # Calculate enemy position from bearing
+        bearing_rad = math.radians(event.bearing)
+        enemy_x = self.x + event.distance * math.sin(bearing_rad)
+        enemy_y = self.y + event.distance * math.cos(bearing_rad)
+        
+        # Convert enemy direction and velocity to velocity components
+        heading_rad = math.radians(event.direction)
+        vx = event.speed * math.sin(heading_rad)
+        vy = event.speed * math.cos(heading_rad)
         
         # Update tracker with this enemy's data
         self.enemies.update(
-            enemy_id=scanned.name,
-            x=scanned.x,
-            y=scanned.y,
+            enemy_id=event.scanned_bot_id,
+            x=enemy_x,
+            y=enemy_y,
             vx=vx,
             vy=vy,
-            energy=scanned.energy,
+            energy=event.energy,
             tick=self.tick
         )
         
@@ -472,7 +482,7 @@ class SkirmisherTank:
         """
         # Turn perpendicular to dodge
         self.turn_right(90)
-        self.ahead(50)
+        self.forward(50)
     
     def on_hit_wall(self, event):
         """
@@ -496,3 +506,9 @@ class SkirmisherTank:
         will handle it automatically
         """
         pass
+
+
+# Main entry point
+if __name__ == "__main__":
+    bot = SkirmisherTank()
+    bot.start()

@@ -1,0 +1,22 @@
+{
+  "name": "ChallengerTank",
+  "version": "1.0.0",
+  "authors": [
+    "Claude Code"
+  ],
+  "description": "Beyond the Tutorials - Takes everything from FinalBossTank and adds 8 advanced features: bullet dodging system, predictive anti-gravity with 3-step lookahead, corner trap detection, formation breaking, adaptive force constants, energy phase management, time-to-danger threat prioritization, and statistical pattern learning. The ultimate challenge!",
+  "url": "https://github.com/anthropics/claude-code",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "ChallengerTank",
+  "botModule": "challenger_tank"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "TricksterBot",
+  "version": "1.0.0",
+  "authors": [
+    "Student"
+  ],
+  "description": "Week 4: Strategy & Unpredictable Movement - Multiple movement patterns including zigzag, spiral, and stop-and-go. Learn randomness and tactical behavior!",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "TricksterBot",
+  "botModule": "trickster_bot"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "ExampleTank",
+  "version": "1.0.0",
+  "authors": [
+    "Your Name Here"
+  ],
+  "description": "Example submission tank showing the proper structure for submissions. Use this as a template for your own tank!",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "ExampleTank",
+  "botModule": "example_tank"
+}

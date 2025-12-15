@@ -1,0 +1,22 @@
+{
+  "name": "SkirmisherTank",
+  "version": "1.0.0",
+  "authors": [
+    "Student"
+  ],
+  "description": "Week 7: Advanced Skirmisher - Multi-enemy battles! NumPy vectorized operations, efficient data structures, and threat assessment. Handles 50+ enemies simultaneously!",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "SkirmisherTank",
+  "botModule": "skirmisher_tank"
+}

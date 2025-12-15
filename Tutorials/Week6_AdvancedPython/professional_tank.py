@@ -9,6 +9,7 @@ This tank demonstrates:
 - Strategy pattern
 - Clean, maintainable code
 """
+from robocode_tank_royale.bot_api import BaseBot, BotInfo
 import math
 import random
 
@@ -132,7 +133,7 @@ class CircularMovement(MovementStrategy):
     
     def move(self, tank):
         """Move in a circular pattern"""
-        tank.ahead(20)
+        tank.forward(20)
         tank.turn_right(10)
         self.angle += 10
 
@@ -208,7 +209,7 @@ class PredictiveTargeting(TargetingStrategy):
 
 # ============= BASE TANK =============
 
-class BaseTank:
+class BaseTank(BaseBot):
     """
     Base class with common tank functionality
     
@@ -217,6 +218,7 @@ class BaseTank:
     """
     
     def __init__(self):
+        super().__init__()
         self.targeting_math = TargetingSystem()
     
     def aim_at(self, target_x, target_y):
@@ -283,26 +285,45 @@ class ProfessionalTank(BaseTank):
         self.targeting = PredictiveTargeting(bullet_power=2)
         # self.targeting = SimpleTargeting()
     
-    def run(self):
+    async def run(self):
         """
         Main loop - runs every tick
         
         Notice how clean this is! The complexity is hidden
         in the strategy classes.
         """
-        # Use our movement strategy
-        self.movement.move(self)
-        
-        # Scan for enemies
-        self.turn_radar_right(45)
+        while True:
+            # Use our movement strategy
+            self.movement.move(self)
+            
+            # Scan for enemies
+            self.turn_radar_right(45)
+            
+            await self.go()
     
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_bot(self, event):
         """
         Called when we spot an enemy
         
         This method is clean and easy to understand because
         we delegated the complex logic to other classes.
         """
+        # Calculate enemy position from bearing
+        bearing_rad = math.radians(event.bearing)
+        enemy_x = self.x + event.distance * math.sin(bearing_rad)
+        enemy_y = self.y + event.distance * math.cos(bearing_rad)
+        
+        # Create scanned_robot object for strategy compatibility
+        class ScannedRobot:
+            def __init__(self, x, y, speed, direction, energy):
+                self.x = x
+                self.y = y
+                self.speed = speed
+                self.direction = direction
+                self.energy = energy
+        
+        scanned_robot = ScannedRobot(enemy_x, enemy_y, event.speed, event.direction, event.energy)
+        
         # Get target position from our targeting strategy
         target_x, target_y = self.targeting.get_target_position(
             self, scanned_robot
@@ -312,7 +333,7 @@ class ProfessionalTank(BaseTank):
         self.aim_at(target_x, target_y)
         
         # Choose appropriate power (using inherited method!)
-        distance = self.distance_to(scanned_robot.x, scanned_robot.y)
+        distance = self.distance_to(enemy_x, enemy_y)
         power = self.choose_bullet_power(distance)
         
         # Fire!
@@ -328,7 +349,7 @@ class ProfessionalTank(BaseTank):
         Simple reaction: Turn perpendicular and dodge
         """
         self.turn_right(90)
-        self.ahead(100)
+        self.forward(100)
     
     def on_hit_wall(self, event):
         """
@@ -357,14 +378,40 @@ class SniperTank(BaseTank):
         self.movement = CircularMovement(radius=150)
         self.targeting = PredictiveTargeting(bullet_power=1)  # Fast bullets
     
-    def run(self):
-        self.movement.move(self)
-        self.turn_radar_right(30)  # Slower, more deliberate scanning
+    async def run(self):
+        while True:
+            self.movement.move(self)
+            self.turn_radar_right(30)  # Slower, more deliberate scanning
+            await self.go()
     
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_bot(self, event):
         # Similar logic, but always uses power 1 for speed
+        # Calculate enemy position from bearing
+        bearing_rad = math.radians(event.bearing)
+        enemy_x = self.x + event.distance * math.sin(bearing_rad)
+        enemy_y = self.y + event.distance * math.cos(bearing_rad)
+        
+        # Create scanned_robot object for strategy compatibility
+        class ScannedRobot:
+            def __init__(self, x, y, speed, direction, energy):
+                self.x = x
+                self.y = y
+                self.speed = speed
+                self.direction = direction
+                self.energy = energy
+        
+        scanned_robot = ScannedRobot(enemy_x, enemy_y, event.speed, event.direction, event.energy)
+        
         target_x, target_y = self.targeting.get_target_position(
             self, scanned_robot
         )
         self.aim_at(target_x, target_y)
         self.fire(1)  # Always fast bullets!
+
+
+# Main entry point
+if __name__ == "__main__":
+    # You can run either tank:
+    bot = ProfessionalTank()
+    # bot = SniperTank()
+    bot.start()

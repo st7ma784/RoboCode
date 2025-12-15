@@ -5,31 +5,27 @@ Week 3 Tutorial - Boundary Checking
 This tank checks boundaries before moving and validates targets before shooting.
 """
 import math
+from robocode_tank_royale.bot_api import BaseBot, BotInfo
 
-class BoundaryBot:
-    def __init__(self):
-        self.name = "BoundaryBot"
-        # Position and orientation (set by game engine)
-        self.x = 0
-        self.y = 0
-        self.heading = 0
-        # Arena dimensions (typically 800x600)
-        self.battlefield_width = 800
-        self.battlefield_height = 600
+class BoundaryBot(BaseBot):
+    """Demonstrates boundary checking and wall avoidance"""
 
-    def run(self):
+    async def run(self):
         """Main loop with boundary checking"""
-        # Check for walls before moving
-        if self.is_too_close_to_wall(50):
-            print("⚠️ Wall detected! Avoiding...")
-            self.avoid_walls()
-        else:
-            # Safe to move forward
-            self.ahead(50)
-            self.turn_right(10)
+        while True:
+            # Check for walls before moving
+            if self.is_too_close_to_wall(50):
+                print("⚠️ Wall detected! Avoiding...")
+                self.avoid_walls()
+            else:
+                # Safe to move forward
+                self.forward(50)
+                self.turn_right(10)
 
-        # Keep radar spinning to find enemies
-        self.turn_radar_right(45)
+            # Keep radar spinning to find enemies
+            self.turn_radar_right(45)
+            
+            await self.go()
 
     def is_too_close_to_wall(self, margin=50):
         """
@@ -40,9 +36,9 @@ class BoundaryBot:
         """
         # Check each edge
         too_close_left = self.x < margin
-        too_close_right = self.x > (self.battlefield_width - margin)
+        too_close_right = self.x > (self.arena_width - margin)
         too_close_top = self.y < margin
-        too_close_bottom = self.y > (self.battlefield_height - margin)
+        too_close_bottom = self.y > (self.arena_height - margin)
 
         # Return True if ANY edge is too close
         return too_close_left or too_close_right or too_close_top or too_close_bottom
@@ -56,9 +52,9 @@ class BoundaryBot:
         # Calculate distance to each wall
         distances = {
             "left": self.x,
-            "right": self.battlefield_width - self.x,
+            "right": self.arena_width - self.x,
             "top": self.y,
-            "bottom": self.battlefield_height - self.y
+            "bottom": self.arena_height - self.y
         }
 
         # Return the wall with the smallest distance
@@ -79,7 +75,7 @@ class BoundaryBot:
             self.turn_to(0)    # Face up (north)
 
         # Move away from danger
-        self.ahead(100)
+        self.forward(100)
         print(f"Moved away from {nearest} wall")
 
     def is_valid_target(self, x, y):
@@ -92,17 +88,18 @@ class BoundaryBot:
         margin = 20  # Safety margin
 
         # Check X bounds
-        x_ok = margin < x < (self.battlefield_width - margin)
+        x_ok = margin < x < (self.arena_width - margin)
         # Check Y bounds
-        y_ok = margin < y < (self.battlefield_height - margin)
+        y_ok = margin < y < (self.arena_height - margin)
 
         return x_ok and y_ok
 
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_bot(self, event):
         """When we detect an enemy - validate and shoot"""
-        # Get enemy position
-        target_x = scanned_robot.x
-        target_y = scanned_robot.y
+        # Calculate enemy position from bearing
+        bearing_rad = math.radians(event.bearing)
+        target_x = self.x + event.distance * math.sin(bearing_rad)
+        target_y = self.y + event.distance * math.cos(bearing_rad)
 
         # Validate target is in bounds
         if self.is_valid_target(target_x, target_y):
@@ -124,7 +121,7 @@ class BoundaryBot:
         """
         return math.degrees(math.atan2(to_x - from_x, to_y - from_y))
 
-    def on_hit_wall(self, hit_wall):
+    def on_hit_wall(self, event):
         """
         Emergency response if we actually hit a wall
         This shouldn't happen if our boundary checking works!
@@ -133,43 +130,21 @@ class BoundaryBot:
         self.back(100)
         self.turn_right(135)
 
-    def on_hit_by_bullet(self, hit_by_bullet):
+    def on_hit_by_bullet(self, event):
         """React when hit by enemy fire"""
         print("💥 Hit! Taking evasive action!")
         # Quick dodge
         self.turn_right(90)
-        self.ahead(100)
+        self.forward(100)
 
-    # ============================================
-    # Game engine methods (provided by framework)
-    # ============================================
-    def ahead(self, distance):
-        """Move forward"""
-        pass
-
-    def back(self, distance):
-        """Move backward"""
-        pass
-
-    def turn_right(self, degrees):
-        """Turn tank right"""
-        pass
-
-    def turn_to(self, degrees):
-        """Turn tank to absolute heading"""
-        pass
-
-    def turn_radar_right(self, degrees):
-        """Turn radar right"""
-        pass
-
-    def turn_gun_to(self, angle):
-        """Aim gun at absolute angle"""
-        pass
-
-    def fire(self, power):
-        """Fire bullet with given power (1-3)"""
-        pass
+    def turn_to(self, angle):
+        """Turn to absolute angle"""
+        turn_amount = angle - self.direction
+        while turn_amount > 180:
+            turn_amount -= 360
+        while turn_amount < -180:
+            turn_amount += 360
+        self.turn_right(turn_amount)
 
 
 # ============================================
@@ -216,5 +191,5 @@ def test_boundary_checking():
 
 
 if __name__ == "__main__":
-    # Run tests when file is executed directly
-    test_boundary_checking()
+    bot = BoundaryBot()
+    bot.start()

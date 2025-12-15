@@ -20,6 +20,33 @@ cd RoboCode
 pip install -r requirements.txt
 ```
 
+### 3. Install Battle Server (Optional - For Visual Battles)
+
+To watch your tanks fight with graphics:
+
+**Option A: Download Pre-built Server (Easiest)**
+1. Go to [Robocode Tank Royale Releases](https://github.com/robocode-dev/tank-royale/releases)
+2. Download the latest release for your platform
+3. Extract the files
+4. Run the server executable
+
+**Option B: Docker (Recommended for Teachers)**
+```bash
+# Pull and run the Tank Royale server
+docker run -p 7654:7654 -p 8080:8080 robocode/tank-royale-server
+```
+
+**Option C: Build from Source**
+```bash
+# Requires Java 11+
+git clone https://github.com/robocode-dev/tank-royale.git
+cd tank-royale
+./gradlew build
+./gradlew run
+```
+
+**Note:** You can start learning WITHOUT the battle server! The `battle_runner.py` script validates your tanks work correctly. Visual battles are just a bonus feature.
+
 ## Your First Steps
 
 ### Week 1: Create Your First Tank

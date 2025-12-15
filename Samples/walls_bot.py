@@ -16,45 +16,44 @@ Good for:
 """
 
 import math
+from robocode_tank_royale.bot_api import BaseBot, BotInfo
 
-class WallsBot:
+class WallsBot(BaseBot):
+    """Patrols the perimeter of the arena"""
+
     def __init__(self):
-        """Initialize the tank"""
-        self.name = "WallsBot"
-        self.x = 0
-        self.y = 0
-        self.heading = 0
-        self.battlefield_width = 800
-        self.battlefield_height = 600
-
+        super().__init__()
         # How close to walls we want to stay
         self.wall_distance = 50
 
-    def run(self):
+    async def run(self):
         """
         Main loop - drive along the walls!
 
         Strategy: Stay near the perimeter of the arena.
         This gives us walls at our back (fewer angles to defend).
         """
-        # Keep radar spinning
-        self.turn_radar_right(45)
+        while True:
+            # Keep radar spinning
+            self.turn_radar_right(45)
 
-        # Check if we're too far from walls
-        if self.too_far_from_walls():
-            # Move toward nearest wall
-            self.move_to_wall()
-        else:
-            # Drive along the wall
-            self.follow_wall()
+            # Check if we're too far from walls
+            if self.too_far_from_walls():
+                # Move toward nearest wall
+                self.move_to_wall()
+            else:
+                # Drive along the wall
+                self.follow_wall()
+            
+            await self.go()
 
     def too_far_from_walls(self):
         """Check if we're too far from any wall"""
         min_distance = min(
             self.x,  # Distance to left wall
-            self.battlefield_width - self.x,  # Distance to right wall
+            self.arena_width - self.x,  # Distance to right wall
             self.y,  # Distance to top wall
-            self.battlefield_height - self.y  # Distance to bottom wall
+            self.arena_height - self.y  # Distance to bottom wall
         )
         return min_distance > self.wall_distance + 30
 
@@ -63,9 +62,9 @@ class WallsBot:
         # Find nearest wall
         distances = {
             'left': self.x,
-            'right': self.battlefield_width - self.x,
+            'right': self.arena_width - self.x,
             'top': self.y,
-            'bottom': self.battlefield_height - self.y
+            'bottom': self.arena_height - self.y
         }
 
         nearest = min(distances, key=distances.get)
@@ -80,12 +79,12 @@ class WallsBot:
         else:
             self.turn_to(180)  # South
 
-        self.ahead(30)
+        self.forward(30)
 
     def follow_wall(self):
         """Drive along the perimeter"""
         # Move forward along current heading
-        self.ahead(50)
+        self.forward(50)
 
         # Check if we're getting too close to a wall ahead
         if self.wall_ahead():
@@ -96,80 +95,59 @@ class WallsBot:
         """Check if there's a wall directly ahead"""
         # Simple check based on heading and position
         margin = 60
+        heading = self.direction
 
-        if self.heading < 45 or self.heading > 315:
+        if heading < 45 or heading > 315:
             # Facing up
             return self.y < margin
-        elif 45 <= self.heading < 135:
+        elif 45 <= heading < 135:
             # Facing right
-            return self.x > (self.battlefield_width - margin)
-        elif 135 <= self.heading < 225:
+            return self.x > (self.arena_width - margin)
+        elif 135 <= heading < 225:
             # Facing down
-            return self.y > (self.battlefield_height - margin)
+            return self.y > (self.arena_height - margin)
         else:
             # Facing left
             return self.x < margin
 
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_bot(self, event):
         """
         When we see an enemy - aim and shoot!
 
         This uses basic aiming toward enemy's current position.
         """
-        # Calculate angle to enemy
-        angle = self.calculate_angle(
-            self.x, self.y,
-            scanned_robot.x, scanned_robot.y
-        )
-
-        # Aim gun at enemy
-        self.turn_gun_to(angle)
+        # Aim gun at enemy (event contains the bearing)
+        self.turn_gun_to(self.direction + event.bearing)
 
         # Shoot based on distance
-        if scanned_robot.distance < 200:
+        if event.distance < 200:
             self.fire(3)
-        elif scanned_robot.distance < 400:
+        elif event.distance < 400:
             self.fire(2)
         else:
             self.fire(1)
 
-    def on_hit_by_bullet(self, bullet):
+    def on_hit_by_bullet(self, event):
         """React to being hit"""
         print("Hit! Continuing perimeter patrol...")
         # Keep moving along wall
-        self.ahead(100)
+        self.forward(100)
 
-    def on_hit_wall(self, wall):
+    def on_hit_wall(self, event):
         """If we hit a wall, turn and continue"""
         print("Bumped into wall!")
         self.back(20)
         self.turn_right(90)
 
-    def calculate_angle(self, from_x, from_y, to_x, to_y):
-        """Calculate angle from one point to another"""
-        return math.degrees(math.atan2(to_x - from_x, to_y - from_y))
-
-    # Game engine methods
-    def turn_to(self, degrees):
-        pass
-
-    def turn_right(self, degrees):
-        pass
-
-    def ahead(self, distance):
-        pass
-
-    def back(self, distance):
-        pass
-
-    def turn_radar_right(self, degrees):
-        pass
-
-    def turn_gun_to(self, angle):
-        pass
-
-    def fire(self, power):
-        pass
+    def turn_to(self, angle):
+        """Turn to absolute angle"""
+        turn_amount = angle - self.direction
+        # Normalize to -180 to 180
+        while turn_amount > 180:
+            turn_amount -= 360
+        while turn_amount < -180:
+            turn_amount += 360
+        self.turn_right(turn_amount)
 
 
 # Strengths:
@@ -184,3 +162,7 @@ class WallsBot:
 # ❌ No prediction of enemy movement
 # ❌ Doesn't dodge when hit
 # ❌ Can be cornered
+
+if __name__ == "__main__":
+    bot = WallsBot()
+    bot.start()
