@@ -189,7 +189,18 @@ def test_boundary_checking():
 
     print("\n🎉 All tests passed!")
 
-
 if __name__ == "__main__":
-    bot = BoundaryBot()
-    bot.start()
+    import asyncio
+    from pathlib import Path
+    
+    # Load bot info from JSON file in same directory
+    script_dir = Path(__file__).parent
+    json_file = script_dir / "boundary_bot.json"
+    
+    bot_info = None
+    if json_file.exists():
+        bot_info = BotInfo.from_file(str(json_file))
+    
+    # Create and start the bot
+    bot = BoundaryBot(bot_info=bot_info)
+    asyncio.run(bot.start())

@@ -11,8 +11,8 @@ from robocode_tank_royale.bot_api import BaseBot, BotInfo
 class TricksterBot(BaseBot):
     """Uses unpredictable movement patterns to avoid being hit"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, bot_info=None):
+        super().__init__(bot_info=bot_info)
         # Time tracking
         self.time = 0
 
@@ -225,8 +225,18 @@ class TricksterBot(BaseBot):
         """
         return math.degrees(math.atan2(to_x - from_x, to_y - from_y))
 
-
 if __name__ == "__main__":
-    bot = TricksterBot()
-    bot.start()
-
+    import asyncio
+    from pathlib import Path
+    
+    # Load bot info from JSON file in same directory
+    script_dir = Path(__file__).parent
+    json_file = script_dir / "trickster_bot.json"
+    
+    bot_info = None
+    if json_file.exists():
+        bot_info = BotInfo.from_file(str(json_file))
+    
+    # Create and start the bot
+    bot = TricksterBot(bot_info=bot_info)
+    asyncio.run(bot.start())

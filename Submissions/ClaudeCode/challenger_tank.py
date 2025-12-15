@@ -416,8 +416,8 @@ class ChallengerTank(BaseBot):
     - Statistical pattern learning
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, bot_info=None):
+        super().__init__(bot_info=bot_info)
         self.name = "ChallengerTank"
 
         # Core systems
@@ -737,6 +737,19 @@ class ChallengerTank(BaseBot):
 
 
 # Main entry point
+
 if __name__ == "__main__":
-    bot = ChallengerTank()
-    bot.start()
+    import asyncio
+    from pathlib import Path
+    
+    # Load bot info from JSON file in same directory
+    script_dir = Path(__file__).parent
+    json_file = script_dir / "challenger_tank.json"
+    
+    bot_info = None
+    if json_file.exists():
+        bot_info = BotInfo.from_file(str(json_file))
+    
+    # Create and start the bot
+    bot = ChallengerTank(bot_info=bot_info)
+    asyncio.run(bot.start())

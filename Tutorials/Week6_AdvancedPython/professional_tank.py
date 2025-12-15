@@ -217,8 +217,8 @@ class BaseTank(BaseBot):
     these useful methods without rewriting them.
     """
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, bot_info=None):
+        super().__init__(bot_info=bot_info)
         self.targeting_math = TargetingSystem()
     
     def aim_at(self, target_x, target_y):
@@ -370,8 +370,8 @@ class SniperTank(BaseTank):
     when you have a clean architecture.
     """
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, bot_info=None):
+        super().__init__(bot_info=bot_info)
         self.name = "SniperTank"
         
         # Different strategy combination!
@@ -410,8 +410,19 @@ class SniperTank(BaseTank):
 
 
 # Main entry point
+
 if __name__ == "__main__":
-    # You can run either tank:
-    bot = ProfessionalTank()
-    # bot = SniperTank()
-    bot.start()
+    import asyncio
+    from pathlib import Path
+    
+    # Load bot info from JSON file in same directory
+    script_dir = Path(__file__).parent
+    json_file = script_dir / "professional_tank.json"
+    
+    bot_info = None
+    if json_file.exists():
+        bot_info = BotInfo.from_file(str(json_file))
+    
+    # Create and start the bot
+    bot = ProfessionalTank(bot_info=bot_info)
+    asyncio.run(bot.start())

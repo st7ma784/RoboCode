@@ -276,8 +276,8 @@ class SkirmisherTank(BaseBot):
     - Resource management
     """
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, bot_info=None):
+        super().__init__(bot_info=bot_info)
         self.name = "SkirmisherTank"
         
         # Enemy tracking system
@@ -509,6 +509,19 @@ class SkirmisherTank(BaseBot):
 
 
 # Main entry point
+
 if __name__ == "__main__":
-    bot = SkirmisherTank()
-    bot.start()
+    import asyncio
+    from pathlib import Path
+    
+    # Load bot info from JSON file in same directory
+    script_dir = Path(__file__).parent
+    json_file = script_dir / "skirmisher_tank.json"
+    
+    bot_info = None
+    if json_file.exists():
+        bot_info = BotInfo.from_file(str(json_file))
+    
+    # Create and start the bot
+    bot = SkirmisherTank(bot_info=bot_info)
+    asyncio.run(bot.start())

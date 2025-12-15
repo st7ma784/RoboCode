@@ -21,8 +21,8 @@ from robocode_tank_royale.bot_api import BaseBot, BotInfo
 class WallsBot(BaseBot):
     """Patrols the perimeter of the arena"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, bot_info=None):
+        super().__init__(bot_info=bot_info)
         # How close to walls we want to stay
         self.wall_distance = 50
 
@@ -164,5 +164,17 @@ class WallsBot(BaseBot):
 # ❌ Can be cornered
 
 if __name__ == "__main__":
-    bot = WallsBot()
-    bot.start()
+    import asyncio
+    from pathlib import Path
+    
+    # Load bot info from JSON file in same directory
+    script_dir = Path(__file__).parent
+    json_file = script_dir / "walls_bot.json"
+    
+    bot_info = None
+    if json_file.exists():
+        bot_info = BotInfo.from_file(str(json_file))
+    
+    # Create and start the bot
+    bot = WallsBot(bot_info=bot_info)
+    asyncio.run(bot.start())

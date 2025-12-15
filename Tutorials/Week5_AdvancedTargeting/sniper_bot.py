@@ -17,8 +17,8 @@ from robocode_tank_royale.bot_api import BaseBot, BotInfo
 class SniperBot(BaseBot):
     """Advanced targeting with hit probability calculations"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, bot_info=None):
+        super().__init__(bot_info=bot_info)
         # Statistics tracking
         self.shots_fired = 0
         self.shots_hit = 0
@@ -344,7 +344,18 @@ class SniperBot(BaseBot):
         print(f"  Accuracy: {accuracy:.1f}%")
         print(f"  Shots: {self.shots_hit}/{self.shots_fired}")
 
-
 if __name__ == "__main__":
-    bot = SniperBot()
-    bot.start()
+    import asyncio
+    from pathlib import Path
+    
+    # Load bot info from JSON file in same directory
+    script_dir = Path(__file__).parent
+    json_file = script_dir / "sniper_bot.json"
+    
+    bot_info = None
+    if json_file.exists():
+        bot_info = BotInfo.from_file(str(json_file))
+    
+    # Create and start the bot
+    bot = SniperBot(bot_info=bot_info)
+    asyncio.run(bot.start())

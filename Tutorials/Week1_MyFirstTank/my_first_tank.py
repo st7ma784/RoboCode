@@ -36,7 +36,18 @@ class MyFirstTank(BaseBot):
         # Turn around to face attacker
         self.turn_right(90)
 
-
 if __name__ == "__main__":
-    bot = MyFirstTank()
-    bot.start()
+    import asyncio
+    from pathlib import Path
+    
+    # Load bot info from JSON file in same directory
+    script_dir = Path(__file__).parent
+    json_file = script_dir / "my_first_tank.json"
+    
+    bot_info = None
+    if json_file.exists():
+        bot_info = BotInfo.from_file(str(json_file))
+    
+    # Create and start the bot
+    bot = MyFirstTank(bot_info=bot_info)
+    asyncio.run(bot.start())

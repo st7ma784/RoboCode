@@ -108,7 +108,18 @@ class PredictorBot(BaseBot):
         self.back(50)
         self.turn_right(90)
 
-
 if __name__ == "__main__":
-    bot = PredictorBot()
-    bot.start()
+    import asyncio
+    from pathlib import Path
+    
+    # Load bot info from JSON file in same directory
+    script_dir = Path(__file__).parent
+    json_file = script_dir / "predictor_bot.json"
+    
+    bot_info = None
+    if json_file.exists():
+        bot_info = BotInfo.from_file(str(json_file))
+    
+    # Create and start the bot
+    bot = PredictorBot(bot_info=bot_info)
+    asyncio.run(bot.start())
