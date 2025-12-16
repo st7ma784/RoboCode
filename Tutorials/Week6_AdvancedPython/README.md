@@ -794,24 +794,30 @@ Let's see if clean code performs better!
 ### Battle Against Multiple Opponents
 
 ```bash
-python battle_runner.py Tutorials/Week6_AdvancedPython/professional_tank.py Samples/walls_bot.py
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week6_AdvancedPython/professional_tank.py Samples/walls_bot.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 ### Compare With Earlier Tanks
 
 ```bash
 # Week 1 vs Professional
-python battle_runner.py Tutorials/Week1_MyFirstTank/my_first_tank.py Tutorials/Week6_AdvancedPython/professional_tank.py
+python the RoboCode GUI arena Tutorials/Week1_MyFirstTank/my_first_tank.py Tutorials/Week6_AdvancedPython/professional_tank.py
 
 # Week 5 vs Professional
-python battle_runner.py Tutorials/Week5_AdvancedTargeting/sniper_bot.py Tutorials/Week6_AdvancedPython/professional_tank.py
+python the RoboCode GUI arena Tutorials/Week5_AdvancedTargeting/sniper_bot.py Tutorials/Week6_AdvancedPython/professional_tank.py
 ```
 
 ### Test All Samples
 
 ```bash
-python battle_runner.py Tutorials/Week6_AdvancedPython/professional_tank.py --all-samples
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week6_AdvancedPython/professional_tank.py --all-samples
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 ## Part 9: Challenges and Experiments 🚀
 

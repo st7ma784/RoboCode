@@ -97,11 +97,16 @@ This will:
 python genetic_tank.py --mode battle
 ```
 
-### Step 3: Compare Performance
+### Step 3: Watch Your Bot Evolve in the Arena!
+
 ```bash
-# Battle evolved bot vs random parameters
-python scripts/battle_runner.py --bots genetic_tank champion_bot --rounds 10
+# Start the RoboCode GUI, then run:
+python Tutorials/Week10_GeneticAlgorithm/genetic_tank.py --mode battle
 ```
+
+Add some opponents and start the battle to see your evolved parameters in action!
+
+You can also check your GitHub Actions tab - the automated battles will show you how well your evolved bot performs against various opponents!
 
 ## 📊 Understanding the Output
 

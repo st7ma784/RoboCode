@@ -845,7 +845,7 @@ def should_fire(my_energy, target_distance, target_energy, hit_probability):
 ```bash
 # Test against several sample tanks at once
 # (You'll need a battle runner that supports multi-tank battles)
-python battle_runner.py Tutorials/Week7_AdvancedSkirmisher/skirmisher_tank.py --all-samples
+python the RoboCode GUI arena Tutorials/Week7_AdvancedSkirmisher/skirmisher_tank.py --all-samples
 ```
 
 ### Comparing Performance

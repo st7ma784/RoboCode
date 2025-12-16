@@ -8,13 +8,54 @@
 Welcome to Python Tank Wars! Get ready to build your very own fighting robot tank and watch it battle in the arena!
 
 This week you'll:
-1. Set up Python on your computer
-2. Learn what a tank program is
-3. Create your very first fighting tank
-4. See it battle in the arena!
-5. Submit your tank to compete with others
+1. Learn about GitHub (your code's home on the internet!)
+2. Set up Python on your computer
+3. Download the RoboCode battle arena
+4. Create your very first fighting tank
+5. Watch it battle in the arena!
+6. Share your tank on GitHub for others to battle!
 
-## Part 1: Setting Up Your Battle Station (15 minutes)
+## Part 1: Understanding GitHub (10 minutes)
+
+### What is GitHub? 🏠
+
+Think of GitHub like **Instagram for code**! Instead of sharing photos, programmers share their code projects. Here's why it's awesome:
+
+- **📦 It's a Backpack for Code**: Stores all your tank programs safely in the cloud
+- **⏰ It's a Time Machine**: See every change you ever made and undo mistakes
+- **🤝 It's a Collaboration Tool**: Work with friends on the same tank
+- **🏆 It's a Portfolio**: Show off your best tanks to everyone!
+- **🤖 It Has Robots**: GitHub Actions automatically test your tank in battles!
+
+### Real-World Analogy
+
+Imagine you're writing a story:
+- **Without GitHub**: Save to one file. Computer crashes? Story gone. Want to try a different ending? You have to delete the old one or make copies like "story_v2.docx", "story_final.docx", "story_final_REALLY.docx"
+- **With GitHub**: Every version saved forever. Try new ideas safely. Work on different chapters at once. Your friend can read and suggest edits. If your computer explodes, your story is still safe online!
+
+### Creating Your GitHub Account
+
+1. Go to [github.com](https://github.com)
+2. Click "Sign Up" (it's free!)
+3. Choose a cool username (this will be public! Pick something you like)
+4. Use your real email (you'll need to verify it)
+5. Solve the puzzle (proves you're not a robot 🤖)
+6. Check your email and click the verification link
+
+**🎉 Congratulations!** You now have a home for all your future code projects!
+
+### Forking This Project (Making Your Own Copy)
+
+To create your own version of Python Tank Wars:
+
+1. Go to the main RoboCode repository (your instructor will give you the link)
+2. Click the **"Fork"** button in the top-right corner
+3. This creates YOUR OWN copy of the entire project!
+4. Now you can change anything without breaking the original
+
+**Analogy**: Forking is like photocopying a recipe book. You have the same recipes, but you can write notes, add your own recipes, and highlight your favorites without messing up the library's copy!
+
+## Part 2: Setting Up Your Battle Station (15 minutes)
 
 Let's get your computer ready to run tank battles!
 
@@ -38,126 +79,120 @@ python3 --version
 ```
 If you need to install it: `sudo apt install python3 python3-pip` (Ubuntu/Debian)
 
-### Step 2: Get the RoboCode Project
+### Step 2: Download Your Forked Project from GitHub
 
-**Option A: Download the Code**
-1. Go to the RoboCode GitHub page
-2. Click the green "Code" button
-3. Click "Download ZIP"
+Now let's get YOUR copy of the code onto your computer!
+
+**Option A: Download as ZIP (Easiest for Beginners)**
+1. Go to YOUR forked repository on GitHub (github.com/YOUR_USERNAME/RoboCode)
+2. Click the green **"Code"** button
+3. Click **"Download ZIP"**
 4. Unzip it to your Documents folder
+5. Rename the folder from "RoboCode-main" to "RoboCode"
 
-**Option B: Clone with Git (if you know Git)**
+**Option B: Clone with Git (Recommended if you've used it before)**
 ```bash
-git clone https://github.com/YourUsername/RoboCode.git
+# Replace YOUR_USERNAME with your actual GitHub username!
+git clone https://github.com/YOUR_USERNAME/RoboCode.git
 cd RoboCode
 ```
 
-### Step 3: Install Battle Requirements
+**What's the difference?**
+- **ZIP download**: Like getting a snapshot. Easy to start, but you'll need to upload changes manually later.
+- **Git clone**: Like having a live connection. Changes sync automatically, but requires learning a few extra commands.
 
-Open your terminal or command prompt and navigate to the RoboCode folder:
+### Step 3: Download RoboCode Tank Royale (The Battle Arena!)
+
+This is the actual game engine where your tanks fight! You write the AI (brains), it provides the arena (body).
+
+**🎮 Step 3a: Download the Battle Arena**
+
+Visit the official releases page:
+👉 [Robocode Tank Royale Releases](https://github.com/robocode-dev/tank-royale/releases)
+
+Look for the latest release and download the right file for your computer:
+
+- **Windows**: `robocode-tank-royale-gui-x.x.x-win64.zip`
+- **Mac**: `robocode-tank-royale-gui-x.x.x-mac.dmg`
+- **Linux**: `robocode-tank-royale-gui-x.x.x-linux.tar.gz`
+
+**🗂️ Step 3b: Install It**
+
+**Windows:**
+1. Unzip the downloaded file
+2. Move the `robocode-tank-royale` folder to `C:\Program Files\` (or anywhere you like!)
+3. Double-click `robocode-tank-royale.exe` to start
+
+**Mac:**
+1. Open the `.dmg` file
+2. Drag "Robocode Tank Royale" to your Applications folder
+3. Open it from Applications (you might need to right-click → Open the first time due to security)
+
+**Linux:**
+1. Extract: `tar -xzf robocode-tank-royale-*.tar.gz`
+2. Move to /opt: `sudo mv robocode-tank-royale /opt/`
+3. Run: `/opt/robocode-tank-royale/robocode-tank-royale`
+
+### Step 4: Install Python Dependencies
+
+Open your terminal or command prompt and navigate to YOUR RoboCode folder:
 
 ```bash
-cd Documents/RoboCode
+cd Documents/RoboCode  # Or wherever you extracted it!
 pip install -r requirements.txt
 ```
 
-This installs all the tools needed to run tank battles!
+This installs all the Python tools needed to control your tank!
 
-### Step 3.5: Install Battle Server (Optional - For Visual Battles)
+### Step 5: Test Your Tank in the Arena!
 
-**Good news:** You can start learning RIGHT NOW without this! The `battle_runner.py` validates your code works. But if you want to see **actual animated tank battles with graphics**, you'll need the Robocode Tank Royale server.
+**🚀 Starting Your First Battle**
 
-**Quick Install Options:**
+1. **Start the Robocode Tank Royale GUI**:
+   - **Windows**: Double-click `robocode-tank-royale.exe`
+   - **Mac**: Open from Applications
+   - **Linux**: Run the executable from where you installed it
 
-**🎮 Option A: Pre-built Download (Easiest)**
-1. Visit [Robocode Tank Royale Releases](https://github.com/robocode-dev/tank-royale/releases)
-2. Download the latest release for your system (Windows/Mac/Linux)
-3. Extract the files
-4. Double-click the server to run it
-5. Open your web browser to `http://localhost:8080` to watch battles!
+2. **The arena window will open** - this is where the battles happen!
 
-**🐳 Option B: Docker (For Advanced Users)**
-```bash
-docker run -p 7654:7654 -p 8080:8080 robocode/tank-royale-server
-```
+3. **Connect your tank to the arena**:
 
-**🔧 Option C: Build from Source (Requires Java 11+)**
-```bash
-git clone https://github.com/robocode-dev/tank-royale.git
-cd tank-royale
-./gradlew build
-./gradlew run
-```
-
-**Note:** Your tanks need a `.json` config file (already created for you!) to connect to the server. All tutorial and sample tanks now have these files ready to go!
-
-### Step 4: Test Your Setup
-
-Let's make sure everything works:
+Open a terminal in your RoboCode project folder and run:
 
 ```bash
-python battle_runner.py Samples/sitting_duck.py Samples/spin_bot.py
+python Tutorials/Week1_MyFirstTank/my_first_tank.py
 ```
 
-You should see a battle happen! If you see colorful text showing a battle, you're ready! 🎉
+Your tank will say: `🚀 Connected to arena! Waiting for battle to start...`
 
-### Step 5: Watch Your First Battle in the GUI! (Optional but Awesome! 🎮)
+4. **Add an opponent**:
 
-**Two ways to run battles:**
-1. **Text mode** (battle_runner.py) - Quick validation, no setup needed
-2. **Visual GUI** (Tank Royale) - See animated battles with explosions! 💥
-
-Let's get the GUI working so you can SEE your tanks fight!
-
-#### 🎮 Starting the Visual Battle GUI
-
-**Step 5a: Start the Tank Royale Server**
-
-Find where you installed Robocode Tank Royale and start the server:
-
-**Windows:**
-- Double-click `robocode-tank-royale-server.exe` or `tank-royale.exe`
-
-**Mac/Linux:**
-```bash
-# If you downloaded the release:
-./robocode-tank-royale-server
-
-# If using Docker:
-docker run -p 7654:7654 -p 8080:8080 robocode/tank-royale-server
-```
-
-You should see a message saying the server is running on port 7654!
-
-**Step 5b: Open the Battle Arena in Your Browser**
-
-Open your web browser and go to:
-```
-http://localhost:8080
-```
-
-You should see the **Robocode Tank Royale** arena! 🎮
-
-**Step 5c: Launch Your Tank**
-
-Open a **new terminal** (keep the server running!) and run:
+Open a SECOND terminal and run a sample tank:
 
 ```bash
-# From the RoboCode directory
-python run_gui_battle.py Tutorials/Week1_MyFirstTank/my_first_tank.py
+python Samples/sitting_duck.py
 ```
 
-You'll see:
-```
-🚀 STARTING TANK - Connect to GUI
-📺 Open your browser to: http://localhost:8080
+5. **In the GUI window**, click **"Start Battle"**!
+
+Watch your tank fight! 🎮💥
+
+**What you'll see:**
+- Tanks moving around the arena
+- Bullets flying
+- Explosions when tanks get hit!
+- A winner at the end!
+
+### 🎯 Quick Testing Without the GUI
+
+If you just want to check if your code works (no graphics needed):
+
+```bash
+# Just verify the tank code runs
+python Tutorials/Week1_MyFirstTank/my_first_tank.py --test
 ```
 
-**Step 5d: Start the Battle!**
-
-1. In your browser (at `http://localhost:8080`), you should see your tank listed
-2. Select 1-2 sample bots from `Samples/` folder (run them in separate terminals)
-3. Click **"Start Battle"**
+This checks for errors without needing the GUI running!
 4. **WATCH YOUR TANK FIGHT!** 💥🎯
 
 #### 🎯 Quick Start Commands for GUI Battles
@@ -197,21 +232,7 @@ Then in browser (`http://localhost:8080`):
 - Check browser is at `http://localhost:8080` (not https!)
 - Make sure no firewall is blocking ports 7654 or 8080
 
-#### 🆚 Battle Runner vs GUI
-
-| Feature | battle_runner.py | GUI (run_gui_battle.py) |
-|---------|------------------|-------------------------|
-| **Setup** | No extra setup | Need Tank Royale server |
-| **Speed** | Instant | Takes 30 seconds to setup |
-| **Visual** | Text only | Animated graphics! 🎨 |
-| **Purpose** | Quick testing | Watching epic battles |
-| **Best for** | Development | Showcasing your tank |
-
-**TIP:** Use `battle_runner.py` while coding, then use the GUI to watch your tank in action!
-
-## Part 2: Getting on GitHub (10 minutes)
-
-GitHub is where you'll share your tank and compete with others around the world!
+## Part 2: What is a Tank Program? (10 minutes)
 
 ### Steps to Sign Up:
 1. Go to [github.com](https://github.com)
@@ -357,8 +378,11 @@ Time to watch your tank in action!
 Run this command in your terminal (make sure you're in the RoboCode folder):
 
 ```bash
-python battle_runner.py Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/sitting_duck.py
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/sitting_duck.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 🎉 You should see your tank fighting! The battle runner will show you:
 - What's happening in the battle
@@ -371,23 +395,35 @@ Try fighting different sample tanks to see how your tank performs:
 
 **Easy opponent:**
 ```bash
-python battle_runner.py Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/sitting_duck.py
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/sitting_duck.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 **Medium opponent:**
 ```bash
-python battle_runner.py Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/spin_bot.py
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/spin_bot.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 **Harder opponent:**
 ```bash
-python battle_runner.py Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/walls_bot.py
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/walls_bot.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 **Battle ALL sample tanks at once:**
 ```bash
-python battle_runner.py Tutorials/Week1_MyFirstTank/my_first_tank.py --all-samples
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week1_MyFirstTank/my_first_tank.py --all-samples
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 ### Making Changes and Testing
 
@@ -413,8 +449,11 @@ Ready to show the world your tank? Let's submit it to compete!
 
 Test your tank one more time:
 ```bash
-python battle_runner.py Submissions/YourName/your_tank.py Samples/sitting_duck.py
+# Start RoboCode GUI, then run your tank:
+python Submissions/YourName/your_tank.py Samples/sitting_duck.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 If it runs without errors, you're ready! 🎉
 

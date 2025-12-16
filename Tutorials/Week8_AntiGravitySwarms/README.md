@@ -979,8 +979,11 @@ class AntiGravityTank:
 ### Battle Against Multiple Enemies
 
 ```bash
-python battle_runner.py Tutorials/Week8_AntiGravitySwarms/anti_gravity_tank.py --all-samples
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week8_AntiGravitySwarms/anti_gravity_tank.py --all-samples
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 ### Visualizing Movement
 

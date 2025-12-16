@@ -285,8 +285,11 @@ Time to see if your math works!
 - It shoots back, so you'll know if you're dodging well!
 
 ```bash
-python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/walls_bot.py
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week2_Trigonometry/predictor_bot.py Samples/walls_bot.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 If your prediction math is working, you should hit WallsBot much more often than a tank without prediction!
 
@@ -296,13 +299,19 @@ Try fighting with and without prediction:
 
 **With prediction (your new bot):**
 ```bash
-python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/walls_bot.py
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week2_Trigonometry/predictor_bot.py Samples/walls_bot.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 **Without prediction (Week 1 bot):**
 ```bash
-python battle_runner.py Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/walls_bot.py
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week1_MyFirstTank/my_first_tank.py Samples/walls_bot.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 You should see a BIG difference in accuracy! 📈
 
@@ -310,24 +319,33 @@ You should see a BIG difference in accuracy! 📈
 
 **Easy (should win easily now):**
 ```bash
-python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/sitting_duck.py
-python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/spin_bot.py
+python the RoboCode GUI arena Tutorials/Week2_Trigonometry/predictor_bot.py Samples/sitting_duck.py
+python the RoboCode GUI arena Tutorials/Week2_Trigonometry/predictor_bot.py Samples/spin_bot.py
 ```
 
 **Medium (good test):**
 ```bash
-python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/walls_bot.py
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week2_Trigonometry/predictor_bot.py Samples/walls_bot.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 **Hard (real challenge):**
 ```bash
-python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py Samples/tracker_bot.py
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week2_Trigonometry/predictor_bot.py Samples/tracker_bot.py
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 ### Battle ALL sample tanks:
 ```bash
-python battle_runner.py Tutorials/Week2_Trigonometry/predictor_bot.py --all-samples
+# Start RoboCode GUI, then run your tank:
+python Tutorials/Week2_Trigonometry/predictor_bot.py --all-samples
 ```
+
+Add opponents in separate terminals, then click "Start Battle" in the GUI!
 
 ## Part 7: Experiments and Challenges
 

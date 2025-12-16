@@ -72,32 +72,32 @@ class HunterKillerBot(Bot):
         # Assign patrol quadrants
         if self.role == "HUNTER1":
             # Upper quadrant
-            target_x = self.arena_width * 0.5
-            target_y = self.arena_height * 0.75
+            target_x = self.get_arena_width() * 0.5
+            target_y = self.get_arena_height() * 0.75
         else:
             # Lower quadrant
-            target_x = self.arena_width * 0.5
-            target_y = self.arena_height * 0.25
+            target_x = self.get_arena_width() * 0.5
+            target_y = self.get_arena_height() * 0.25
         
         # Check if killer is engaging
         if self.killer_engaging and self.primary_target:
             # Retreat to give killer room
-            retreat_x = self.arena_width * 0.1 if self.x < self.arena_width / 2 else self.arena_width * 0.9
+            retreat_x = self.get_arena_width() * 0.1 if self.get_x() < self.get_arena_width() / 2 else self.get_arena_width() * 0.9
             retreat_y = target_y
             
-            angle = math.degrees(math.atan2(retreat_x - self.x, retreat_y - self.y))
-            turn = (angle - self.direction + 360) % 360
+            angle = math.degrees(math.atan2(retreat_x - self.get_x(), retreat_y - self.get_y()))
+            turn = (angle - self.get_direction() + 360) % 360
             if turn > 180:
                 turn -= 360
             self.turn_rate = turn * 0.5
             self.target_speed = 80
         else:
             # Patrol quadrant
-            distance_to_patrol = math.sqrt((target_x - self.x)**2 + (target_y - self.y)**2)
+            distance_to_patrol = math.sqrt((target_x - self.get_x())**2 + (target_y - self.get_y())**2)
             
             if distance_to_patrol > 50:
-                angle = math.degrees(math.atan2(target_x - self.x, target_y - self.y))
-                turn = (angle - self.direction + 360) % 360
+                angle = math.degrees(math.atan2(target_x - self.get_x(), target_y - self.get_y()))
+                turn = (angle - self.get_direction() + 360) % 360
                 if turn > 180:
                     turn -= 360
                 self.turn_rate = turn * 0.3
@@ -113,10 +113,10 @@ class HunterKillerBot(Bot):
             
             # Aim at target
             angle_to_target = math.degrees(math.atan2(
-                target['x'] - self.x,
-                target['y'] - self.y
+                target['x'] - self.get_x(),
+                target['y'] - self.get_y()
             ))
-            turret_angle = (angle_to_target - self.gun_direction + 360) % 360
+            turret_angle = (angle_to_target - self.get_gun_direction() + 360) % 360
             if turret_angle > 180:
                 turret_angle -= 360
             self.gun_turn_rate = turret_angle
@@ -132,16 +132,16 @@ class HunterKillerBot(Bot):
             
             # Calculate intercept course
             angle_to_target = math.degrees(math.atan2(
-                target['x'] - self.x,
-                target['y'] - self.y
+                target['x'] - self.get_x(),
+                target['y'] - self.get_y()
             ))
             
-            distance = math.sqrt((target['x'] - self.x)**2 + (target['y'] - self.y)**2)
+            distance = math.sqrt((target['x'] - self.get_x())**2 + (target['y'] - self.get_y())**2)
             
             # Movement strategy
             if distance > 300:
                 # Close distance quickly
-                turn = (angle_to_target - self.direction + 360) % 360
+                turn = (angle_to_target - self.get_direction() + 360) % 360
                 if turn > 180:
                     turn -= 360
                 self.turn_rate = turn * 0.5
@@ -149,7 +149,7 @@ class HunterKillerBot(Bot):
                 self.killer_engaging = False
             elif distance < 150:
                 # Too close, maintain distance
-                turn = (angle_to_target - self.direction + 180 + 360) % 360
+                turn = (angle_to_target - self.get_direction() + 180 + 360) % 360
                 if turn > 180:
                     turn -= 360
                 self.turn_rate = turn * 0.3
@@ -159,14 +159,14 @@ class HunterKillerBot(Bot):
                 # Optimal range - engage!
                 self.killer_engaging = True
                 # Strafe movement
-                turn = (angle_to_target - self.direction + 90 + 360) % 360
+                turn = (angle_to_target - self.get_direction() + 90 + 360) % 360
                 if turn > 180:
                     turn -= 360
                 self.turn_rate = turn * 0.2
                 self.target_speed = 40
             
             # Aim and fire with maximum power
-            turret_angle = (angle_to_target - self.gun_direction + 360) % 360
+            turret_angle = (angle_to_target - self.get_gun_direction() + 360) % 360
             if turret_angle > 180:
                 turret_angle -= 360
             self.gun_turn_rate = turret_angle
@@ -188,15 +188,15 @@ class HunterKillerBot(Bot):
                 self.gun_turn_rate = lead_angle
                 self.fire = power
         else:
-            # No target, center position
-            center_x = self.arena_width / 2
-            center_y = self.arena_height / 2
+            # Patrol center
+            center_x = self.get_arena_width() / 2
+            center_y = self.get_arena_height() / 2
             
-            distance_to_center = math.sqrt((center_x - self.x)**2 + (center_y - self.y)**2)
+            distance_to_center = math.sqrt((center_x - self.get_x())**2 + (center_y - self.get_y())**2)
             
             if distance_to_center > 100:
-                angle = math.degrees(math.atan2(center_x - self.x, center_y - self.y))
-                turn = (angle - self.direction + 360) % 360
+                angle = math.degrees(math.atan2(center_x - self.get_x(), center_y - self.get_y()))
+                turn = (angle - self.get_direction() + 360) % 360
                 if turn > 180:
                     turn -= 360
                 self.turn_rate = turn * 0.3
@@ -213,8 +213,8 @@ class HunterKillerBot(Bot):
         scanned_y = event.y
         
         # Calculate distance from coordinates
-        dx = event.x - self.x
-        dy = event.y - self.y
+        dx = event.x - self.get_x()
+        dy = event.y - self.get_y()
         distance = math.sqrt(dx**2 + dy**2)
         
         if not event.is_teammate:

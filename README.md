@@ -15,15 +15,38 @@ You'll learn Python programming by creating your own robot tank that can:
 
 ### What You'll Need
 - Python 3.8 or newer
-- A computer (Windows, Mac, or Linux)
+- A GitHub account (free!)
+- Robocode Tank Royale GUI ([download here](https://github.com/robocode-dev/tank-royale/releases))
 - Enthusiasm for robot battles!
 
-### Installation
+### Quick Setup
 
-```bash
-# Install the requirements
-pip install -r requirements.txt
-```
+1. **Fork this repository** on GitHub (click the Fork button above!)
+2. **Download Robocode Tank Royale** from the releases page
+3. **Clone YOUR fork** to your computer:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/RoboCode.git
+   cd RoboCode
+   ```
+4. **Install Python dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+5. **Start the Robocode GUI** and launch your first battle!
+
+### Testing Your Tanks
+
+**In the Arena (Recommended):**
+- Start the Robocode Tank Royale GUI
+- Run your tank: `python Tutorials/Week1_MyFirstTank/my_first_tank.py`
+- Add opponents in separate terminals
+- Click "Start Battle" and watch the action! 🎮
+
+**Automated Testing on GitHub:**
+- Push your code to GitHub
+- GitHub Actions automatically tests your tanks
+- Check the "Actions" tab for battle results!
+- No local setup needed - battles run in the cloud! ☁️
 
 ## Tutorial Structure
 
@@ -104,6 +127,25 @@ Follow these weekly tutorials in order:
 - Build tanks that adapt during battle
 - Explore exploration vs exploitation tradeoff
 
+## 🛠️ Shared Code - tank_utils.py
+
+Starting from Week 2, tutorials use `tank_utils.py` - a shared library of helper functions!
+
+**Why?** Instead of copying math functions into every tank, we import them:
+
+```python
+from tank_utils import TankMath, TankTargeting
+
+distance = TankMath.calculate_distance(x1, y1, x2, y2)
+```
+
+**Benefits:**
+- ✅ Shorter, cleaner code
+- ✅ Fix bugs once, all tanks benefit  
+- ✅ Professional coding practices (DRY principle!)
+
+See [TANK_UTILS_README.md](TANK_UTILS_README.md) for full documentation.
+
 ## Sample Tanks
 
 Check out `Samples/` for example tanks:
@@ -124,10 +166,69 @@ The `Guides/` folder has detailed explanations:
 
 ## Submitting Your Tank
 
-Put your tank in the `Submissions/YourName/` folder and create a Pull Request. Our automated system will:
-1. Run your tank against sample opponents
-2. Create a battle video
-3. Generate a scoresheet showing how you did
+Ready to compete? Submit your tank to the arena!
+
+### How to Submit
+
+1. **Create a GUI-compatible tank** in `Submissions/YourName/`:
+   - File: `your_tank_gui.py` (must inherit from `BaseBot`)
+   - Config: `your_tank_gui.json` (required for battles)
+
+2. **Test locally** (optional but recommended):
+   ```bash
+   # Quick validation
+   python battle_runner.py Submissions/YourName/your_tank_gui.py Samples/sitting_duck.py
+
+   # Visual battle (requires Tank Royale server)
+   python run_gui_battle.py Submissions/YourName/your_tank_gui.py
+   ```
+
+3. **Create a Pull Request** or **Push to main**
+
+### Automated Battle System
+
+When you submit, GitHub Actions automatically:
+
+✅ **Discovers Your Tank** - Scans for GUI-compatible tanks
+✅ **Launches Tank Royale Server** - Docker container with full battle arena
+✅ **Runs Round-Robin Battles** - Your tank fights every other submission
+✅ **Generates Results:**
+   - `SCORESHEET.md` - Overall rankings and leaderboard
+   - `Submissions/YourName/BATTLE_RECORD.md` - Your tank's win/loss record
+   - JSON artifacts with detailed battle data
+✅ **Comments on PRs** - See battle results right in your pull request
+
+**Example Results:**
+```markdown
+# 🎮 Tank Battle Results
+
+## 🏆 Rankings
+| Rank | Tank | Author | Battles |
+|------|------|--------|---------|
+| 🥇 1 | FinalBossTank | ClaudeCode | 5 |
+| 🥈 2 | YourTank | YourName | 5 |
+```
+
+**View Details:** Check the [Workflows README](.github/workflows/README.md) for technical details
+
+### Battle Requirements
+
+Your tank must:
+- Inherit from `Bot` (for GUI battles)
+- Have a matching `.json` config file
+- Be named with `_gui.py` suffix (e.g., `my_tank_gui.py`)
+
+**Example:**
+```python
+from robocode_tank_royale.bot_api import BaseBot, BotInfo
+
+class MyTank(Bot):
+    async def run(self):
+        while True:
+            self.forward(100)
+            self.turn_radar_right(30)
+            await self.go()
+```
 
 ## Rules
 

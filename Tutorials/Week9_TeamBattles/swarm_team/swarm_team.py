@@ -72,18 +72,18 @@ class SwarmBot(Bot):
         if self.target_x is not None and self.target_y is not None:
             # Calculate angle to target
             angle_to_target = math.degrees(math.atan2(
-                self.target_x - self.x,
-                self.target_y - self.y
+                self.target_x - self.get_x(),
+                self.target_y - self.get_y()
             ))
             
             # Turn toward target
-            turn_amount = (angle_to_target - self.direction + 360) % 360
+            turn_amount = (angle_to_target - self.get_direction() + 360) % 360
             if turn_amount > 180:
                 turn_amount -= 360
             self.turn_rate = turn_amount * 0.3
             
             # Move toward target but maintain distance
-            distance = math.sqrt((self.target_x - self.x)**2 + (self.target_y - self.y)**2)
+            distance = math.sqrt((self.target_x - self.get_x())**2 + (self.target_y - self.get_y())**2)
             if distance > 200:
                 self.target_speed = 100
             elif distance < 100:
@@ -92,21 +92,21 @@ class SwarmBot(Bot):
                 self.target_speed = 20
             
             # Aim turret at target
-            turret_angle = (angle_to_target - self.gun_direction + 360) % 360
+            turret_angle = (angle_to_target - self.get_gun_direction() + 360) % 360
             if turret_angle > 180:
                 turret_angle -= 360
             self.gun_turn_rate = turret_angle
             
             # Fire if aimed
             if abs(turret_angle) < 10 and self.gun_heat == 0:
-                power = min(3, self.energy / 10)  # Scale power with energy
+                power = min(3, self.get_energy() / 10)  # Scale power with energy
                 self.fire = power
         else:
             # No target, patrol
             self.target_speed = 50
-            if self.x < 100 or self.x > self.arena_width - 100:
+            if self.get_x() < 100 or self.get_x() > self.get_arena_width() - 100:
                 self.turn_rate = 90
-            if self.y < 100 or self.y > self.arena_height - 100:
+            if self.get_y() < 100 or self.get_y() > self.get_arena_height() - 100:
                 self.turn_rate = 90
     
     async def follower_behavior(self):
@@ -121,13 +121,13 @@ class SwarmBot(Bot):
             
             # Calculate desired position (flanking the target)
             angle_to_target = math.degrees(math.atan2(
-                self.target_x - self.x,
-                self.target_y - self.y
+                self.target_x - self.get_x(),
+                self.target_y - self.get_y()
             ))
             
             # Flank position
             flank_angle = (angle_to_target + self.formation_angle) % 360
-            turn_amount = (flank_angle - self.direction + 360) % 360
+            turn_amount = (flank_angle - self.get_direction() + 360) % 360
             if turn_amount > 180:
                 turn_amount -= 360
             self.turn_rate = turn_amount * 0.3
