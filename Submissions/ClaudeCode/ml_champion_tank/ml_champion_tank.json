@@ -1,0 +1,22 @@
+{
+  "name": "MLChampionTank",
+  "version": "1.0.0",
+  "authors": [
+    "Claude Code"
+  ],
+  "description": "Hybrid Q-Learning + Genetic Algorithm bot with advanced targeting",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "MLChampionTank",
+  "botModule": "ml_champion_tank"
+}

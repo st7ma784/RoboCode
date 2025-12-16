@@ -1,0 +1,22 @@
+{
+  "name": "AdaptiveBot",
+  "version": "1.0",
+  "authors": [
+    "GitHub Copilot"
+  ],
+  "description": "Field-based adaptive movement with predictive shooting",
+  "url": "",
+  "countryCodes": [
+    "us"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "AdaptiveBot",
+  "botModule": "adaptive_bot"
+}

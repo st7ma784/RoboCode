@@ -75,34 +75,34 @@ class _EnemyTracker:
     def __init__(self, max_enemies=50):
         self.max_enemies = max_enemies
         self.enemy_ids = []
-        self.get_x() = np.array([])
-        self.get_y() = np.array([])
+        self.x = np.array([])
+        self.y = np.array([])
         self.vx = np.array([])
         self.vy = np.array([])
-        self.get_energy() = np.array([])
+        self.energy = np.array([])
         self.last_seen = np.array([])
 
     def update(self, enemy_id, x, y, vx, vy, energy, tick):
         """Add or update enemy in tracking system"""
         if enemy_id in self.enemy_ids:
             idx = self.enemy_ids.index(enemy_id)
-            self.get_x()[idx] = x
-            self.get_y()[idx] = y
+            self.x[idx] = x
+            self.y[idx] = y
             self.vx[idx] = vx
             self.vy[idx] = vy
-            self.get_energy()[idx] = energy
+            self.energy[idx] = energy
             self.last_seen[idx] = tick
         else:
             if len(self.enemy_ids) < self.max_enemies:
                 self.enemy_ids.append(enemy_id)
-                self.get_x() = np.append(self.get_x(), x)
-                self.get_y() = np.append(self.get_y(), y)
+                self.x = np.append(self.x, x)
+                self.y = np.append(self.y, y)
                 self.vx = np.append(self.vx, vx)
                 self.vy = np.append(self.vy, vy)
-                self.get_energy() = np.append(self.get_energy(), energy)
+                self.energy = np.append(self.energy, energy)
                 self.last_seen = np.append(self.last_seen, tick)
 
-    def cleanup(self, current_tick, max_age=100):
+    def cleanup(self, current_tick, max_age=200):
         """Remove stale enemy data"""
         if len(self.enemy_ids) == 0:
             return
@@ -116,11 +116,11 @@ class _EnemyTracker:
 
         keep_idx = np.where(keep)[0]
         self.enemy_ids = [self.enemy_ids[i] for i in keep_idx]
-        self.get_x() = self.get_x()[keep]
-        self.get_y() = self.get_y()[keep]
+        self.x = self.x[keep]
+        self.y = self.y[keep]
         self.vx = self.vx[keep]
         self.vy = self.vy[keep]
-        self.get_energy() = self.get_energy()[keep]
+        self.energy = self.energy[keep]
         self.last_seen = self.last_seen[keep]
 
     def count(self):
@@ -156,20 +156,26 @@ class _AntiGravityMovement:
         return force_x, force_y
 
     def add_wall_repulsion(self, my_x, my_y, battlefield_width, battlefield_height):
-        """Walls push you away too"""
-        margin = 80
+        """Walls push you away - STRONG forces to prevent getting stuck"""
+        margin = 100  # Start repelling earlier
         fx = 0
         fy = 0
 
+        # Much stronger forces that increase exponentially as we get closer
         if my_x < margin:
-            fx = 500 * (margin - my_x) / margin
+            distance_ratio = (margin - my_x) / margin
+            # Exponential increase: gentle far away, VERY strong when close
+            fx = 2000 * (distance_ratio ** 2)
         elif my_x > battlefield_width - margin:
-            fx = -500 * (my_x - (battlefield_width - margin)) / margin
+            distance_ratio = (my_x - (battlefield_width - margin)) / margin
+            fx = -2000 * (distance_ratio ** 2)
 
         if my_y < margin:
-            fy = 500 * (margin - my_y) / margin
+            distance_ratio = (margin - my_y) / margin
+            fy = 2000 * (distance_ratio ** 2)
         elif my_y > battlefield_height - margin:
-            fy = -500 * (my_y - (battlefield_height - margin)) / margin
+            distance_ratio = (my_y - (battlefield_height - margin)) / margin
+            fy = -2000 * (distance_ratio ** 2)
 
         return fx, fy
 
@@ -240,8 +246,14 @@ class _MovementPatternController:
         self.counter = 0
         self.last_pattern = None
 
-    def choose_pattern(self, energy):
-        """Select pattern based on energy level"""
+    def choose_pattern(self, energy, has_enemies=True):
+        """Select pattern based on energy level and enemy presence"""
+        if not has_enemies:
+            # Active search mode when no enemies visible
+            self.current_pattern = "search"
+            self.pattern_timer = 200
+            return
+
         if energy > 70:
             patterns = ["circle", "zigzag", "aggressive", "spiral"]
         elif energy > 30:
@@ -262,31 +274,64 @@ class _MovementPatternController:
         """Execute current movement pattern"""
         self.counter += 1
 
-        if self.current_pattern == "circle":
-            tank.forward(50)
-            tank.turn_right(18)
+        if self.current_pattern == "search":
+            # Active enemy hunting - search arena quadrants
+            quadrant = (self.counter // 200) % 4
+            arena_width = tank.get_arena_width()
+            arena_height = tank.get_arena_height()
+
+            if quadrant == 0:  # Top-right
+                target_x = arena_width * 0.75
+                target_y = arena_height * 0.25
+            elif quadrant == 1:  # Bottom-right
+                target_x = arena_width * 0.75
+                target_y = arena_height * 0.75
+            elif quadrant == 2:  # Bottom-left
+                target_x = arena_width * 0.25
+                target_y = arena_height * 0.75
+            else:  # Top-left
+                target_x = arena_width * 0.25
+                target_y = arena_height * 0.25
+
+            # Move toward target quadrant
+            dx = target_x - tank.get_x()
+            dy = target_y - tank.get_y()
+            import math
+            angle = math.degrees(math.atan2(dx, dy))
+            turn_needed = angle - tank.get_direction()
+            while turn_needed > 180:
+                turn_needed -= 360
+            while turn_needed < -180:
+                turn_needed += 360
+            tank.turn_rate = turn_needed
+            tank.target_speed = 50
+            tank.radar_turn_rate = 60  # Wide sweep to find enemies
+
+        elif self.current_pattern == "circle":
+            tank.target_speed = 50
+            tank.turn_rate = 18
         elif self.current_pattern == "zigzag":
-            tank.forward(60)
-            tank.turn_right(30 if random.random() < 0.5 else -30)
+            tank.target_speed = 60
+            tank.turn_rate = 30 if random.random() < 0.5 else -30
         elif self.current_pattern == "spiral":
             distance = 30 + (self.counter % 60)
-            tank.forward(distance)
-            tank.turn_right(25)
+            tank.target_speed = distance
+            tank.turn_rate = 25
         elif self.current_pattern == "random_walk":
-            tank.forward(random.randint(30, 80))
-            tank.turn_right(random.randint(-20, 20))
+            tank.target_speed = random.randint(30, 80)
+            tank.turn_rate = random.randint(-20, 20)
         elif self.current_pattern == "aggressive":
-            tank.forward(70)
-            tank.turn_right(random.randint(5, 25))
+            tank.target_speed = 70
+            tank.turn_rate = random.randint(5, 25)
         elif self.current_pattern == "evasive":
             if random.random() < 0.3:
-                tank.back(40)
+                tank.target_speed = -40
             else:
-                tank.forward(50)
-            tank.turn_right(random.randint(20, 70))
+                tank.target_speed = 50
+            tank.turn_rate = random.randint(20, 70)
         elif self.current_pattern == "defensive":
-            tank.forward(30)
-            tank.turn_right(random.randint(30, 90))
+            tank.target_speed = 30
+            tank.turn_rate = random.randint(30, 90)
 
 
 # ============= WEEK 5: ADVANCED TARGETING =============
@@ -429,7 +474,7 @@ class FinalBossTank(Bot):
 
         # State
         self.tick = 0
-        self.get_radar_direction() = 1
+        self.radar_scan_direction = 1
         self.mode = "hybrid"  # hybrid, pattern, anti_gravity
         self.mode_timer = 0
 
@@ -443,14 +488,11 @@ class FinalBossTank(Bot):
         current = self.get_direction() % 360
         target = target_angle % 360
         diff = (target - current + 180) % 360 - 180
-        if diff < 0:
-            self.turn_rate = -(abs(diff))
-        else:
-            self.turn_rate = diff
+        self.turn_rate = diff
 
     async def run(self):
         """Main loop - Week 1 structure with advanced logic"""
-        while self.is_running():
+        while True:
             self.tick += 1
 
             # Week 7: Periodic cleanup
@@ -459,38 +501,39 @@ class FinalBossTank(Bot):
                 if self.enemies.count() > self.max_enemies_seen:
                     self.max_enemies_seen = self.enemies.count()
 
-            # Week 3: Emergency wall avoidance
+            # Week 3: CRITICAL - Emergency wall avoidance when VERY close
             if self.boundary.is_too_close_to_wall(self.get_x(), self.get_y(),
                                                    self.get_arena_width(),
-                                                   self.get_arena_height(), margin=50):
+                                                   self.get_arena_height(), margin=70):
+                # EMERGENCY! Override everything and escape!
                 self.emergency_wall_escape()
                 self.radar_turn_rate = 45
-                await self.go()
-                continue
-
-            # Adaptive mode selection
-            self.select_mode()
-
-            # Execute movement based on mode
-            if self.mode == "anti_gravity" and self.enemies.count() > 0:
-                # Week 8: Anti-gravity when enemies nearby
-                self.execute_anti_gravity_movement()
-            elif self.mode == "hybrid" and self.enemies.count() > 0:
-                # Combine anti-gravity with patterns
-                self.execute_hybrid_movement()
+                # Wall escape has priority - skip normal movement
             else:
-                # Week 4: Pattern-based movement
-                self.execute_pattern_movement()
+                # Adaptive mode selection
+                self.select_mode()
+
+                # Execute movement based on mode
+                # NOTE: Anti-gravity ALWAYS includes wall repulsion forces
+                if self.mode == "anti_gravity" and self.enemies.count() > 0:
+                    # Week 8: Anti-gravity when enemies nearby
+                    self.execute_anti_gravity_movement()
+                elif self.mode == "hybrid" and self.enemies.count() > 0:
+                    # Combine anti-gravity with patterns
+                    self.execute_hybrid_movement()
+                else:
+                    # Week 4: Pattern-based movement
+                    self.execute_pattern_movement()
 
             # Radar sweep
-            self.radar_turn_rate = self.get_radar_direction() * 45
+            self.radar_turn_rate = self.radar_scan_direction * 45
             if self.tick % 8 == 0:
-                self.get_radar_direction() *= -1
+                self.radar_scan_direction *= -1
 
             # Week 5 & 7: Engage best target
             if self.enemies.count() > 0:
                 await self.engage_best_target()
-            
+
             await self.go()
 
     def select_mode(self):
@@ -534,31 +577,47 @@ class FinalBossTank(Bot):
 
     def execute_hybrid_movement(self):
         """Combine anti-gravity with pattern variations"""
-        # Get anti-gravity suggestion
-        enemy_fx, enemy_fy = self.anti_gravity.calculate_forces(
-            self.get_x(), self.get_y(), self.enemies
-        )
-        wall_fx, wall_fy = self.anti_gravity.add_wall_repulsion(
-            self.get_x(), self.get_y(),
-            self.get_arena_width(),
-            self.get_arena_height()
-        )
+        # Check if close to walls - if so, add wall avoidance forces
+        if self.boundary.is_too_close_to_wall(self.get_x(), self.get_y(),
+                                               self.get_arena_width(),
+                                               self.get_arena_height(), margin=90):
+            # Blend pattern with wall avoidance
+            wall_fx, wall_fy = self.anti_gravity.add_wall_repulsion(
+                self.get_x(), self.get_y(),
+                self.get_arena_width(),
+                self.get_arena_height()
+            )
 
-        # Apply 50% anti-gravity, 50% pattern
-        if enemy_fx != 0 or enemy_fy != 0:
-            escape_angle = np.degrees(np.arctan2(enemy_fx + wall_fx, enemy_fy + wall_fy))
-            self.turn_to(escape_angle)
-
-        # Add pattern variation
-        self.movement_controller.execute(self)
+            if wall_fx != 0 or wall_fy != 0:
+                wall_angle = np.degrees(np.arctan2(wall_fx, wall_fy))
+                self.turn_to(wall_angle)
+                self.target_speed = 50
+            else:
+                self.movement_controller.execute(self)
+        else:
+            # Normal pattern movement
+            self.movement_controller.execute(self)
 
     def execute_pattern_movement(self):
-        """Week 4: Pattern-based movement"""
-        if self.movement_controller.pattern_timer <= 0:
-            self.movement_controller.choose_pattern(self.get_energy())
+        """Week 4: Pattern-based movement with wall awareness"""
+        # If getting close to walls, prioritize moving away
+        if self.boundary.is_too_close_to_wall(self.get_x(), self.get_y(),
+                                               self.get_arena_width(),
+                                               self.get_arena_height(), margin=90):
+            # Turn toward center to avoid wall collision
+            center_x = self.get_arena_width() / 2
+            center_y = self.get_arena_height() / 2
+            angle = self.targeting.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
+            self.turn_to(angle)
+            self.target_speed = 50
+        else:
+            # Normal pattern movement
+            if self.movement_controller.pattern_timer <= 0:
+                has_enemies = self.enemies.count() > 0
+                self.movement_controller.choose_pattern(self.get_energy(), has_enemies)
 
-        self.movement_controller.execute(self)
-        self.movement_controller.pattern_timer -= 1
+            self.movement_controller.execute(self)
+            self.movement_controller.pattern_timer -= 1
 
     def emergency_wall_escape(self):
         """Week 3: Escape from walls"""
@@ -570,11 +629,10 @@ class FinalBossTank(Bot):
 
     async def on_scanned_bot(self, event):
         """Week 1: Event handler with Week 2 calculations"""
-        # Calculate enemy position from bearing
-        bearing_rad = math.radians(event.bearing)
-        enemy_x = self.get_x() + event.distance * math.sin(bearing_rad)
-        enemy_y = self.get_y() + event.distance * math.cos(bearing_rad)
-        
+        # Get enemy position from event
+        enemy_x = event.x
+        enemy_y = event.y
+
         # Convert to velocity components
         heading_rad = math.radians(event.direction)
         vx = event.speed * math.sin(heading_rad)
@@ -652,9 +710,13 @@ class FinalBossTank(Bot):
             angle = self.targeting.calculate_angle(
                 self.get_x(), self.get_y(), future_x[0], future_y[0]
             )
-            self.gun_turn_rate = self.calc_gun_turn(angle)
-            await self.fire(bullet_power)
-            self.shots_fired += 1
+            gun_turn = self.calc_gun_turn(angle)
+            self.gun_turn_rate = gun_turn
+
+            # Only fire if gun is approximately aimed (within 15 degrees)
+            if abs(gun_turn) < 15:
+                await self.fire(bullet_power)
+                self.shots_fired += 1
 
     async def on_hit_by_bullet(self, event):
         """Week 4: Reactive dodging"""
@@ -668,14 +730,14 @@ class FinalBossTank(Bot):
             self.turn_rate = 90
             self.target_speed = 70
         elif dodge == 'left':
-            self.turn_rate = -(90)
+            self.turn_rate = -90
             self.target_speed = 70
         else:
-            self.target_speed = -(60)
+            self.target_speed = -60
 
     async def on_hit_wall(self, event):
         """Week 1 & 3: Wall collision handler"""
-        self.target_speed = -(50)
+        self.target_speed = -50
         self.turn_rate = 90
 
     def on_robot_death(self, event):

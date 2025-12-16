@@ -184,11 +184,51 @@ def on_scanned_robot(self, event):
         time_to_hit
     )
 
-    # Aim at future position!
+    # IMPORTANT: Validate predicted position is in arena!
+    # Don't shoot at targets that will be outside the arena - you'll miss and hit walls!
+    margin = 20  # Safety margin from walls
+    arena_width = self.get_arena_width()
+    arena_height = self.get_arena_height()
+
+    if (future_x < margin or future_x > arena_width - margin or
+        future_y < margin or future_y > arena_height - margin):
+        # Target going out of bounds - aim at current position instead
+        print("⚠️ Predicted position out of bounds! Aiming at current position.")
+        future_x, future_y = enemy_x, enemy_y
+
+    # Aim at validated future position!
     angle_to_future = calculate_angle(self.get_x(), self.get_y(), future_x, future_y)
     self.turn_gun_to(angle_to_future)
     self.fire(1)
 ```
+
+### ⚠️ Critical: Always Validate Predicted Positions!
+
+**Why is this important?**
+
+When you predict where an enemy will be, sometimes your calculation will predict a position OUTSIDE the arena (beyond the walls). This happens when:
+- The enemy is moving fast toward a wall
+- The enemy is very close to a wall
+- The time to hit is long (slow bullet, far distance)
+
+**What happens if you don't validate?**
+- Your tank aims at a point outside the arena (through the wall)
+- Your bullet hits the wall instead of the enemy
+- You waste energy and give the enemy a free shot!
+
+**The fix:**
+Always check if the predicted position is within the arena boundaries. If it's not, fall back to aiming at the enemy's current position instead.
+
+```python
+# After predicting future position:
+margin = 20  # Safety margin from walls
+if (future_x < margin or future_x > arena_width - margin or
+    future_y < margin or future_y > arena_height - margin):
+    # Predicted position is out of bounds - use current position instead
+    future_x, future_y = enemy_x, enemy_y
+```
+
+This simple check will dramatically improve your accuracy and prevent you from wasting shots on walls!
 
 ## Part 5: Your Smart Tank - "PredictorBot"
 
@@ -256,6 +296,17 @@ class PredictorBot:
             event.direction,
             time_to_hit
         )
+
+        # Validate predicted position is in arena - don't shoot walls!
+        margin = 20
+        arena_width = self.get_arena_width()
+        arena_height = self.get_arena_height()
+
+        if (future_x < margin or future_x > arena_width - margin or
+            future_y < margin or future_y > arena_height - margin):
+            # Target going out of bounds - aim at current position instead
+            future_x, future_y = enemy_x, enemy_y
+            print(f"⚠️ Predicted out of bounds! Aiming at current position.")
 
         # Calculate angle to future position
         angle = self.calculate_angle(self.x, self.y, future_x, future_y)
@@ -471,6 +522,12 @@ bullet_speed = 20 - 3 * bullet_power
 - Start simple - try predicting for just 1 time unit
 - Print out the values to see what's happening
 - Test against a tank moving in a straight line first
+
+**"My tank shoots at walls!"**
+- ALWAYS validate predicted positions are within arena bounds
+- Add a margin check: `if future_x < 20 or future_x > arena_width - 20...`
+- If predicted position is out of bounds, fall back to current enemy position
+- This is especially important when enemies are near walls
 
 ---
 

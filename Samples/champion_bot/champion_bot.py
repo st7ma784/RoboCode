@@ -42,7 +42,7 @@ class ChampionBot(Bot):
         self.time = 0
         
 
-    async def calc_gun_turn(self, target_angle):
+    def calc_gun_turn(self, target_angle):
         """Calculate gun turn needed to face target angle"""
         diff = target_angle - self.get_gun_direction()
         # Normalize to -180 to 180
@@ -71,16 +71,16 @@ class ChampionBot(Bot):
                 print(f"🏆 ChampionBot alive at tick {self.time}, energy: {self.get_energy():.1f}")
 
             # Check boundaries FIRST (Week 3)
-            if await self.is_too_close_to_wall(50):
-                await self.avoid_walls()
+            if self.is_too_close_to_wall(50):
+                self.avoid_walls()
             else:
                 # Change movement pattern occasionally (Week 4)
                 if self.pattern_timer <= 0:
-                    await self.choose_movement_pattern()
+                    self.choose_movement_pattern()
                     self.pattern_timer = random.randint(40, 80)
 
                 # Execute current movement
-                await self.execute_movement()
+                self.execute_movement()
                 self.pattern_timer -= 1
 
             # Smart radar
@@ -88,7 +88,7 @@ class ChampionBot(Bot):
             
             await self.go()
 
-    async def choose_movement_pattern(self):
+    def choose_movement_pattern(self):
         """Select movement based on situation"""
         if self.get_energy() > 70:
             # High energy - be aggressive
@@ -109,7 +109,7 @@ class ChampionBot(Bot):
 
         print(f"🔄 Pattern: {self.movement_pattern}")
 
-    async def execute_movement(self):
+    def execute_movement(self):
         """Execute current movement pattern"""
         if self.movement_pattern == "circle":
             self.target_speed = 50
@@ -181,35 +181,35 @@ class ChampionBot(Bot):
             energy_drop = self.enemy_energy - event.energy
             if 0 < energy_drop <= 3:
                 print(f"⚠️  Enemy fired! Power ~{energy_drop}")
-                await self.emergency_dodge()
+                self.emergency_dodge()
 
         self.enemy_energy = event.energy
 
         # Choose optimal power (Week 5)
-        power = await self.choose_optimal_power(distance, velocity)
+        power = self.choose_optimal_power(distance, velocity)
 
         # Predict future position (Week 2 + improvements)
         bullet_speed = 20 - (3 * power)
         time_to_hit = distance / bullet_speed
-        future_x, future_y = await self.predict_position(
+        future_x, future_y = self.predict_position(
             enemy_x, enemy_y,
             velocity, event.direction,
             time_to_hit
         )
 
         # Validate target (Week 3)
-        if not await self.is_valid_target(future_x, future_y):
+        if not self.is_valid_target(future_x, future_y):
             future_x, future_y = enemy_x, enemy_y
 
         # Simulate shot (Week 5)
-        will_hit, _, _ =  await self.simulate_shot(future_x, future_y, power)
+        will_hit, _, _ = self.simulate_shot(future_x, future_y, power)
 
         # Calculate hit probability
-        hit_prob = await self.calculate_hit_probability(distance, velocity, power)
+        hit_prob = self.calculate_hit_probability(distance, velocity, power)
 
         # Only shoot if good chance or desperate
         if will_hit or hit_prob > 0.4 or distance < 100:
-            angle = await self.calculate_angle(self.get_x(), self.get_y(), future_x, future_y)
+            angle = self.calculate_angle(self.get_x(), self.get_y(), future_x, future_y)
             self.gun_turn_rate = self.calc_gun_turn(angle)
             await self.fire(power)
             self.shots_fired += 1
@@ -217,7 +217,7 @@ class ChampionBot(Bot):
         else:
             print(f"⏸️  Hold: {hit_prob:.0%}")
 
-    async def choose_optimal_power(self, distance, velocity):
+    def choose_optimal_power(self, distance, velocity):
         """Choose power maximizing expected damage (Week 5)"""
         if self.get_energy() < 15:
             return 1
@@ -228,7 +228,7 @@ class ChampionBot(Bot):
         max_power = 3 if self.get_energy() > 40 else 2
 
         for power in range(1, max_power + 1):
-            prob = await self.calculate_hit_probability(distance, velocity, power)
+            prob = self.calculate_hit_probability(distance, velocity, power)
             expected = prob * (4 * power)
 
             if expected > best_expected:
@@ -237,7 +237,7 @@ class ChampionBot(Bot):
 
         return best_power
 
-    async def calculate_hit_probability(self, distance, velocity, power):
+    def calculate_hit_probability(self, distance, velocity, power):
         """Estimate hit probability (Week 5)"""
         bullet_speed = 20 - (3 * power)
         time = distance / bullet_speed
@@ -257,9 +257,9 @@ class ChampionBot(Bot):
 
         return max(0.0, min(1.0, prob))
 
-    async def simulate_shot(self, target_x, target_y, power):
+    def simulate_shot(self, target_x, target_y, power):
         """Simulate bullet trajectory (Week 5)"""
-        angle = await self.calculate_angle(self.get_x(), self.get_y(), target_x, target_y)
+        angle = self.calculate_angle(self.get_x(), self.get_y(), target_x, target_y)
         angle_rad = math.radians(angle)
         speed = 20 - (3 * power)
 
@@ -279,14 +279,14 @@ class ChampionBot(Bot):
 
         return (False, bullet_x, bullet_y)
 
-    async def predict_position(self, x, y, velocity, heading, time):
+    def predict_position(self, x, y, velocity, heading, time):
         """Predict future position (Week 2)"""
         heading_rad = math.radians(heading)
         future_x = x + velocity * time * math.sin(heading_rad)
         future_y = y + velocity * time * math.cos(heading_rad)
         return future_x, future_y
 
-    async def emergency_dodge(self):
+    def emergency_dodge(self):
         """Quick dodge when enemy fires (Week 4)"""
         dodge_type = random.randint(1, 3)
         if dodge_type == 1:
@@ -307,34 +307,34 @@ class ChampionBot(Bot):
         self.pattern_timer = 0
 
         # Dodge
-        await self.emergency_dodge()
+        self.emergency_dodge()
 
-    async def is_too_close_to_wall(self, margin):
+    def is_too_close_to_wall(self, margin):
         """Boundary check (Week 3)"""
         return (self.get_x() < margin or
                 self.get_x() > self.get_arena_width() - margin or
                 self.get_y() < margin or
                 self.get_y() > self.get_arena_height() - margin)
 
-    async def avoid_walls(self):
+    def avoid_walls(self):
         """Wall avoidance (Week 3)"""
         center_x = self.get_arena_width() / 2
         center_y = self.get_arena_height() / 2
-        angle = await self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
-        await self.turn_to(angle)
+        angle = self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
+        self.turn_to(angle)
         self.target_speed = 70
 
-    async def is_valid_target(self, x, y):
+    def is_valid_target(self, x, y):
         """Target validation (Week 3)"""
         margin = 20
         return (margin < x < self.get_arena_width() - margin and
                 margin < y < self.get_arena_height() - margin)
 
-    async def calculate_angle(self, from_x, from_y, to_x, to_y):
+    def calculate_angle(self, from_x, from_y, to_x, to_y):
         """Angle calculation (Week 2)"""
         return math.degrees(math.atan2(to_x - from_x, to_y - from_y))
     
-    async def turn_to(self, angle):
+    def turn_to(self, angle):
         """Turn to absolute angle"""
         turn_amount = angle - self.get_direction()
         # Normalize to -180 to 180

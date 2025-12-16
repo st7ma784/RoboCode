@@ -15,7 +15,7 @@ This tank takes everything from the tutorials and adds:
 
 This is the ultimate challenge!
 """
-from robocode_tank_royale.bot_api import Bot,Color, BotInfo
+from robocode_tank_royale.bot_api import Bot, Color, BotInfo
 import numpy as np
 import math
 import random
@@ -62,11 +62,11 @@ class _EnemyTracker:
     def __init__(self, max_enemies=50):
         self.max_enemies = max_enemies
         self.enemy_ids = []
-        self.get_x() = np.array([])
-        self.get_y() = np.array([])
+        self.x = np.array([])
+        self.y = np.array([])
         self.vx = np.array([])
         self.vy = np.array([])
-        self.get_energy() = np.array([])
+        self.energy = np.array([])
         self.last_seen = np.array([])
 
         # EXTRA: Pattern history for learning
@@ -86,24 +86,24 @@ class _EnemyTracker:
                 'tick': tick
             })
 
-            self.get_x()[idx] = x
-            self.get_y()[idx] = y
+            self.x[idx] = x
+            self.y[idx] = y
             self.vx[idx] = vx
             self.vy[idx] = vy
-            self.get_energy()[idx] = energy
+            self.energy[idx] = energy
             self.last_seen[idx] = tick
         else:
             if len(self.enemy_ids) < self.max_enemies:
                 self.enemy_ids.append(enemy_id)
-                self.get_x() = np.append(self.get_x(), x)
-                self.get_y() = np.append(self.get_y(), y)
+                self.x = np.append(self.x, x)
+                self.y = np.append(self.y, y)
                 self.vx = np.append(self.vx, vx)
                 self.vy = np.append(self.vy, vy)
-                self.get_energy() = np.append(self.get_energy(), energy)
+                self.energy = np.append(self.energy, energy)
                 self.last_seen = np.append(self.last_seen, tick)
                 self.pattern_history[enemy_id] = deque(maxlen=20)
 
-    def cleanup(self, current_tick, max_age=100):
+    def cleanup(self, current_tick, max_age=200):
         if len(self.enemy_ids) == 0:
             return
 
@@ -120,11 +120,11 @@ class _EnemyTracker:
             self.pattern_history.pop(enemy_id, None)
 
         self.enemy_ids = [self.enemy_ids[i] for i in keep_idx]
-        self.get_x() = self.get_x()[keep]
-        self.get_y() = self.get_y()[keep]
+        self.x = self.x[keep]
+        self.y = self.y[keep]
         self.vx = self.vx[keep]
         self.vy = self.vy[keep]
-        self.get_energy() = self.get_energy()[keep]
+        self.energy = self.energy[keep]
         self.last_seen = self.last_seen[keep]
 
     def count(self):
@@ -202,19 +202,26 @@ class _PredictiveAntiGravity:
         return total_fx, total_fy
 
     def add_wall_repulsion(self, my_x, my_y, battlefield_width, battlefield_height):
-        margin = 80
+        """Walls push you away - STRONG forces to prevent getting stuck"""
+        margin = 100  # Start repelling earlier
         fx = 0
         fy = 0
 
+        # Much stronger forces that increase exponentially as we get closer
         if my_x < margin:
-            fx = 500 * (margin - my_x) / margin
+            distance_ratio = (margin - my_x) / margin
+            # Exponential increase: gentle far away, VERY strong when close
+            fx = 2000 * (distance_ratio ** 2)
         elif my_x > battlefield_width - margin:
-            fx = -500 * (my_x - (battlefield_width - margin)) / margin
+            distance_ratio = (my_x - (battlefield_width - margin)) / margin
+            fx = -2000 * (distance_ratio ** 2)
 
         if my_y < margin:
-            fy = 500 * (margin - my_y) / margin
+            distance_ratio = (margin - my_y) / margin
+            fy = 2000 * (distance_ratio ** 2)
         elif my_y > battlefield_height - margin:
-            fy = -500 * (my_y - (battlefield_height - margin)) / margin
+            distance_ratio = (my_y - (battlefield_height - margin)) / margin
+            fy = -2000 * (distance_ratio ** 2)
 
         return fx, fy
 
@@ -437,7 +444,7 @@ class ChallengerTank(Bot):
 
         # State
         self.tick = 0
-        self.get_radar_direction() = 1
+        self.radar_scan_direction = 1
         self.mode = "tactical"
         self.emergency_mode = False
         print("init")
@@ -461,14 +468,11 @@ class ChallengerTank(Bot):
         current = self.get_direction() % 360
         target = target_angle % 360
         diff = (target - current + 180) % 360 - 180
-        if diff < 0:
-            self.turn_rate = -(abs(diff))
-        else:
-            self.turn_rate = diff
+        self.turn_rate = diff
 
     async def run(self):
         """Main loop with advanced decision making"""
-        while self.is_running():
+        while True:
             self.tick += 1
 
             # Cleanup
@@ -487,7 +491,8 @@ class ChallengerTank(Bot):
             )
 
             if cornered:
-                self.corner_detector.escape_corner(self, escape_angle)
+                self.turn_to(escape_angle)
+                self.target_speed = 100
                 self.radar_turn_rate = 45
                 await self.go()
                 continue
@@ -504,14 +509,14 @@ class ChallengerTank(Bot):
                 await self.go()
                 continue
 
-            # EXTRA: Bullet dodge
+            # EXTRA: Bullet dodge - priority over normal movement
             if self.bullet_dodge.should_dodge(self.get_x(), self.get_y()):
                 dodge_dir = random.choice([-90, 90])
                 self.turn_rate = dodge_dir
                 self.target_speed = 50
-
+                # Don't execute normal movement - dodge has priority
             # Movement with predictive anti-gravity
-            if self.enemies.count() >= 3:
+            elif self.enemies.count() >= 3:
                 self.execute_predictive_anti_gravity()
             elif self.enemies.count() > 0:
                 self.execute_standard_anti_gravity()
@@ -519,14 +524,14 @@ class ChallengerTank(Bot):
                 self.execute_patrol()
 
             # Radar
-            self.radar_turn_rate = self.get_radar_direction() * 45
+            self.radar_turn_rate = self.radar_scan_direction * 45
             if self.tick % 8 == 0:
-                self.get_radar_direction() *= -1
+                self.radar_scan_direction *= -1
 
             # Engage
             if self.enemies.count() > 0:
                 await self.engage_best_target()
-            
+
             await self.go()
 
     def execute_predictive_anti_gravity(self):
@@ -584,26 +589,52 @@ class ChallengerTank(Bot):
             self.target_speed = 25
 
     def execute_patrol(self):
-        """Patrol when no enemies"""
+        """Active search when no enemies visible - hunt them down!"""
         margin = 80
+
+        # If near walls, move to center
         if (self.get_x() < margin or self.get_x() > self.get_arena_width() - margin or
             self.get_y() < margin or self.get_y() > self.get_arena_height() - margin):
             center_x = self.get_arena_width() / 2
             center_y = self.get_arena_height() / 2
             angle = self.targeting.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
             self.turn_to(angle)
+            self.target_speed = 50
+        else:
+            # Active hunting pattern - move toward center and search quadrants
+            # Divide arena into quadrants and search each one
+            quadrant = (self.tick // 200) % 4  # Change quadrant every 200 ticks
 
-        self.target_speed = 30
-        if self.tick % 20 == 0:
-            self.turn_rate = random.randint(-30, 30)
+            if quadrant == 0:  # Top-right
+                target_x = self.get_arena_width() * 0.75
+                target_y = self.get_arena_height() * 0.25
+            elif quadrant == 1:  # Bottom-right
+                target_x = self.get_arena_width() * 0.75
+                target_y = self.get_arena_height() * 0.75
+            elif quadrant == 2:  # Bottom-left
+                target_x = self.get_arena_width() * 0.25
+                target_y = self.get_arena_height() * 0.75
+            else:  # Top-left
+                target_x = self.get_arena_width() * 0.25
+                target_y = self.get_arena_height() * 0.25
+
+            # Move toward target quadrant
+            angle = self.targeting.calculate_angle(self.get_x(), self.get_y(), target_x, target_y)
+            self.turn_to(angle)
+            self.target_speed = 40
+
+        # Wide radar sweep to find enemies
+        self.radar_turn_rate = 60
 
     async def on_scanned_bot(self, event):
         """Update tracking and bullet detection"""
-        # Calculate enemy position from bearing
-        bearing_rad = math.radians(event.bearing)
-        enemy_x = self.get_x() + event.distance * math.sin(bearing_rad)
-        enemy_y = self.get_y() + event.distance * math.cos(bearing_rad)
-        
+        # Calculate distance and position from event coordinates
+        enemy_x = event.x
+        enemy_y = event.y
+        dx = enemy_x - self.get_x()
+        dy = enemy_y - self.get_y()
+        distance = math.sqrt(dx**2 + dy**2)
+
         heading_rad = math.radians(event.direction)
         vx = event.speed * math.sin(heading_rad)
         vy = event.speed * math.cos(heading_rad)
@@ -682,6 +713,13 @@ class ChallengerTank(Bot):
             time_to_hit
         )
 
+        # Validate predicted position is in arena - don't shoot walls!
+        margin = 20
+        if (future_x[0] < margin or future_x[0] > self.get_arena_width() - margin or
+            future_y[0] < margin or future_y[0] > self.get_arena_height() - margin):
+            # Target going out of bounds - aim at current position instead
+            future_x[0], future_y[0] = target_x, target_y
+
         # Hit probability
         hit_prob = self.calculate_hit_probability(target_distance, target_velocity, bullet_power)
 
@@ -690,7 +728,8 @@ class ChallengerTank(Bot):
             angle = self.targeting.calculate_angle(
                 self.get_x(), self.get_y(), future_x[0], future_y[0]
             )
-            self.gun_turn_rate = self.calc_gun_turn(angle)
+            gun_turn = self.calc_gun_turn(angle)
+            self.gun_turn_rate = gun_turn
             await self.fire(bullet_power)
             self.shots_fired += 1
 
@@ -732,14 +771,14 @@ class ChallengerTank(Bot):
             self.turn_rate = 90
             self.target_speed = 70
         elif dodge == 'left':
-            self.turn_rate = -(90)
+            self.turn_rate = -90
             self.target_speed = 70
         else:
-            self.target_speed = -(60)
+            self.target_speed = -60
 
     async def on_hit_wall(self, event):
         """Wall collision"""
-        self.target_speed = -(50)
+        self.target_speed = -50
         self.turn_rate = 90
 
     async def on_bullet_hit(self, event):

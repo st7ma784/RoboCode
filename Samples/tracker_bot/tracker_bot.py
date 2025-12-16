@@ -66,27 +66,27 @@ class TrackerBot(Bot):
         while self.is_running():
             tick += 1
             if tick % 100 == 0:
-                print(f"🎯 TrackerBot tick {tick}, energy: {self.energy:.1f}")
+                print(f"🎯 TrackerBot tick {tick}, energy: {self.get_energy():.1f}")
             
             # Spin radar to find enemies
             self.radar_turn_rate = 45
 
-            # If we have a target, pursue
-            if self.target_x is not None:
+            # Boundary checking FIRST (priority over pursuit)
+            # Use larger margin to avoid getting stuck
+            if self.is_too_close_to_wall(60):
+                self.avoid_walls()
+            # If we have a target and not near wall, pursue
+            elif self.target_x is not None:
                 self.pursue_target()
             else:
                 # No target yet - search
                 self.target_speed = 20
                 self.turn_rate = 10
 
-            # Boundary checking
-            if self.is_too_close_to_wall(40):
-                self.avoid_walls()
-            
             await self.go()
 
     def pursue_target(self):
-        """Chase after the target we've locked onto"""
+        """Chase after the target we've locked onto - with wall awareness!"""
         if self.target_distance is None:
             return
 
@@ -96,22 +96,48 @@ class TrackerBot(Bot):
             self.target_x, self.target_y
         )
 
+        # CRITICAL: Check if close to walls - override pursuit if needed
+        if self.is_too_close_to_wall(70):
+            # Too close to wall - prioritize escaping over pursuit
+            print(f"⚠️ Near wall during pursuit - escaping!")
+            center_x = self.get_arena_width() / 2
+            center_y = self.get_arena_height() / 2
+            angle = self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
+            self.turn_to(angle)
+            self.target_speed = 60
+            return
+
         if self.target_distance > self.optimal_distance + 50:
-            # Too far - move closer
+            # Too far - move closer (but check if path is safe)
             print(f"Closing distance... {self.target_distance:.0f} > {self.optimal_distance}")
             self.turn_to(angle_to_target)
             self.target_speed = 50
 
         elif self.target_distance < self.optimal_distance - 50:
-            # Too close - back away
+            # Too close - back away (but check we're not backing into wall)
             print(f"Backing away... {self.target_distance:.0f} < {self.optimal_distance}")
-            self.turn_to(angle_to_target + 180)  # Turn away
+            retreat_angle = angle_to_target + 180
+
+            # Don't back into walls - adjust retreat angle if needed
+            if not self.is_direction_safe(retreat_angle):
+                # Try perpendicular instead
+                retreat_angle = angle_to_target + 90
+                if not self.is_direction_safe(retreat_angle):
+                    retreat_angle = angle_to_target - 90
+
+            self.turn_to(retreat_angle)
             self.target_speed = 40
 
         else:
-            # Good distance - circle strafe
+            # Good distance - circle strafe (but avoid walls)
             print(f"Optimal distance! Strafing...")
-            self.turn_to(angle_to_target + 90)  # Perpendicular
+            strafe_angle = angle_to_target + 90  # Perpendicular
+
+            # Check if strafing toward wall - reverse direction if needed
+            if not self.is_direction_safe(strafe_angle):
+                strafe_angle = angle_to_target - 90
+
+            self.turn_to(strafe_angle)
             self.target_speed = 30
 
     async def on_scanned_bot(self, event):
@@ -205,14 +231,37 @@ class TrackerBot(Bot):
                 self.get_y()  < margin or
                 self.get_y()  > self.get_arena_height() - margin)
 
+    def is_direction_safe(self, angle):
+        """Check if moving in this direction will lead toward a wall"""
+        # Project position 100 pixels in the given direction
+        angle_rad = math.radians(angle)
+        future_x = self.get_x() + 100 * math.sin(angle_rad)
+        future_y = self.get_y() + 100 * math.cos(angle_rad)
+
+        # Check if future position is too close to walls
+        margin = 60
+        return (future_x > margin and
+                future_x < self.get_arena_width() - margin and
+                future_y > margin and
+                future_y < self.get_arena_height() - margin)
+
     def avoid_walls(self):
         """Turn away from walls"""
-        # Simple avoidance: turn toward center
-        center_x = self.get_arena_width() / 2
-        center_y = self.get_arena_height() / 2
-        angle = self.calculate_angle(self.x, self.y, center_x, center_y)
-        self.turn_to(angle)
-        self.target_speed = 60
+        # If very close, back up first
+        if self.is_too_close_to_wall(30):
+            self.target_speed = -40
+            # Turn toward center while backing up
+            center_x = self.get_arena_width() / 2
+            center_y = self.get_arena_height() / 2
+            angle = self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
+            self.turn_to(angle)
+        else:
+            # Turn toward center and move forward
+            center_x = self.get_arena_width() / 2
+            center_y = self.get_arena_height() / 2
+            angle = self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
+            self.turn_to(angle)
+            self.target_speed = 60
 
     def calculate_angle(self, from_x, from_y, to_x, to_y):
         """Calculate angle from one point to another"""
