@@ -1,5 +1,10 @@
 # Week 7: Battle Royale - Fighting 30+ Tanks at Once! 🎯⚔️
 
+> **Note:** This tutorial uses the BaseBot API which uses **property assignments** instead of method calls.
+> - Movement: `self.forward = 100` (not `self.forward(100)`)
+> - Turning: `self.turn_body = 45` (not `self.turn_right(45)`)
+> - All event handlers must be `async` and use `await` for actions like `await self.fire()`
+
 Imagine you're in an arena with **30 enemy tanks** all shooting at you! You can't think about each one individually - you need to think about them as a **crowd**. This week you'll learn:
 
 1. Data structures - organizing information efficiently
@@ -16,9 +21,9 @@ Imagine you're in an arena with **30 enemy tanks** all shooting at you! You can'
 Let's look at what happens with your Week 6 tank:
 
 ```python
-def on_scanned_robot(self, scanned_robot):
+def on_scanned_robot(self, event):
     # Calculate one enemy...
-    distance = calculate_distance(self.x, self.y, scanned_robot.x, scanned_robot.y)
+    distance = calculate_distance(self.get_x(), self.get_y(), event.x, event.y)
     angle = calculate_angle(...)
     # Aim at this one enemy...
     self.fire(2)
@@ -588,7 +593,7 @@ class SkirmisherTank:
         margin = 80
         if (self.x < margin or self.x > self.battlefield_width - margin or
             self.y < margin or self.y > self.battlefield_height - margin):
-            self.turn_right(90)
+            self.turn_body = 90
         
         self.ahead(20)
         
@@ -675,7 +680,7 @@ class SkirmisherTank:
     def on_hit_by_bullet(self, event):
         """React to being hit"""
         # Quick dodge
-        self.turn_right(90)
+        self.turn_body = 90
         self.ahead(50)
 ```
 

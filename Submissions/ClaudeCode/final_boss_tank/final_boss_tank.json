@@ -1,0 +1,22 @@
+{
+  "name": "FinalBossTank",
+  "version": "1.0.0",
+  "authors": [
+    "Claude Code"
+  ],
+  "description": "The Ultimate Tutorial Synthesis",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "FinalBossTank",
+  "botModule": "final_boss_tank"
+}

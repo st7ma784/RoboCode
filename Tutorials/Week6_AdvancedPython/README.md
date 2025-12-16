@@ -1,5 +1,10 @@
 # Week 6: Code Like a Pro - Classes and Clean Code! 🏗️
 
+> **Note:** This tutorial uses the BaseBot API which uses **property assignments** instead of method calls.
+> - Movement: `self.forward = 100` (not `self.forward(100)`)
+> - Turning: `self.turn_body = 45` (not `self.turn_right(45)`)
+> - All event handlers must be `async` and use `await` for actions like `await self.fire()`
+
 Your tank code is getting powerful, but it's also getting messy! This week you'll learn how professional programmers organize their code to make it:
 - Easier to read
 - Easier to change
@@ -33,7 +38,7 @@ class MyTank:
         if self.move_counter < 50:
             self.ahead(20)
         else:
-            self.turn_right(30)
+            self.turn_body = 30
             self.ahead(10)
         self.move_counter += 1
         if self.move_counter > 100:
@@ -42,21 +47,21 @@ class MyTank:
         # Radar code
         self.turn_radar_right(45)
         
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_robot(self, event):
         # Distance calculation
-        x_diff = scanned_robot.x - self.x
-        y_diff = scanned_robot.y - self.y
+        x_diff = event.x - self.get_x()
+        y_diff = event.y - self.get_y()
         distance = math.sqrt(x_diff**2 + y_diff**2)
         
         # Prediction calculation
         bullet_speed = 20 - 3 * 2
         time = distance / bullet_speed
-        heading_rad = math.radians(scanned_robot.heading)
-        future_x = scanned_robot.x + scanned_robot.velocity * time * math.sin(heading_rad)
-        future_y = scanned_robot.y + scanned_robot.velocity * time * math.cos(heading_rad)
+        heading_rad = math.radians(event.direction)
+        future_x = event.x + event.speed * time * math.sin(heading_rad)
+        future_y = event.y + event.speed * time * math.cos(heading_rad)
         
         # Angle calculation
-        angle = math.degrees(math.atan2(future_x - self.x, future_y - self.y))
+        angle = math.degrees(math.atan2(future_x - self.get_x(), future_y - self.get_y()))
         
         # Shooting
         self.turn_gun_to(angle)
@@ -717,7 +722,7 @@ class ProfessionalTank(BaseTank):
     def on_hit_by_bullet(self, event):
         """React when hit"""
         # Turn perpendicular to dodge
-        self.turn_right(90)
+        self.turn_body = 90
         self.ahead(100)
 ```
 

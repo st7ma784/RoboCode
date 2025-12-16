@@ -630,6 +630,26 @@ class StrategicTank:
 
 ---
 
+## Advanced: AI-Powered Strategy Learning
+
+Once you've mastered hand-coded strategies, consider letting AI discover optimal tactics:
+
+### Genetic Algorithms (Week 10)
+- **Evolve** combat parameters over generations
+- **Automatically find** optimal aggression, range preferences, dodge intensity
+- **No manual tuning** - the algorithm discovers what works
+- **Best for:** Finding global optimal parameter sets
+
+### Q-Learning (Week 11)
+- **Learn** from battle experience in real-time
+- **Adapt** tactics based on opponent behavior
+- **Discover** non-obvious state-action patterns
+- **Best for:** Opponent-specific tactical adaptation
+
+See **[AI & Machine Learning Guide](ai_learning_guide.md)** for details!
+
+---
+
 ## Practice Drills
 
 ### Drill 1: Movement Mastery
@@ -647,6 +667,9 @@ Win a battle using minimum bullets (maximize efficiency).
 ### Drill 5: Adaptability
 Change strategies mid-battle based on situation.
 
+### Drill 6: AI Optimization (Advanced)
+Use genetic algorithms to evolve your tank's parameters automatically.
+
 ---
 
 ## Final Tips
@@ -655,7 +678,8 @@ Change strategies mid-battle based on situation.
 2. **Test Against Different Opponents** - Each requires different strategy
 3. **Iterate and Improve** - Keep refining your approach
 4. **Balance All Three Pillars** - Movement, targeting, energy
-5. **Have Fun!** - The best strategy is one you enjoy
+5. **Consider AI Learning** - For advanced optimization
+6. **Have Fun!** - The best strategy is one you enjoy
 
 ---
 

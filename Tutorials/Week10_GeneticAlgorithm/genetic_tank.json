@@ -1,0 +1,14 @@
+{
+  "name": "GeneticTank",
+  "version": "1.0",
+  "authors": ["RoboCode Tutorial"],
+  "description": "A tank that evolves combat parameters using genetic algorithms",
+  "homepage": "",
+  "countryCodes": ["us"],
+  "gameTypes": ["melee", "1v1"],
+  "platform": "Python",
+  "programmingLang": "Python 3.10",
+  "initialPosition": null,
+  "botClass": "GeneticTank",
+  "botModule": "genetic_tank"
+}

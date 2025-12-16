@@ -1,0 +1,14 @@
+{
+  "name": "QLearningTank",
+  "version": "1.0",
+  "authors": ["RoboCode Tutorial"],
+  "description": "A tank that learns optimal tactics through Q-Learning reinforcement learning",
+  "homepage": "",
+  "countryCodes": ["us"],
+  "gameTypes": ["melee", "1v1"],
+  "platform": "Python",
+  "programmingLang": "Python 3.10",
+  "initialPosition": null,
+  "botClass": "QLearningTank",
+  "botModule": "qlearning_tank"
+}

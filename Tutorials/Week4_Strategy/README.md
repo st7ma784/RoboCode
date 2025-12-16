@@ -1,5 +1,10 @@
 # Week 4: Be Unpredictable! 🎲
 
+> **Note:** This tutorial uses the BaseBot API which uses **property assignments** instead of method calls.
+> - Movement: `self.forward = 100` (not `self.forward(100)`)
+> - Turning: `self.turn_body = 45` (not `self.turn_body = (45)`)
+> - All event handlers must be `async` and use `await` for actions like `await self.fire()`
+
 This week you'll learn advanced strategies to make your tank harder to hit:
 1. Moving in unpredictable patterns
 2. Reacting to enemy fire
@@ -16,12 +21,12 @@ If you always move the same way, enemies can predict where you'll be!
 ```python
 # Always move in circles - PREDICTABLE!
 def run(self):
-    self.ahead(50)
-    self.turn_right(10)
+    self.forward = 50
+    self.turn_body = 10
 
 # Always dodge the same way - PREDICTABLE!
 def on_hit_by_bullet(self, bullet):
-    self.turn_right(90)  # Enemy knows you'll do this!
+    self.turn_body = 90  # Enemy knows you'll do this!
 ```
 
 **Why This is Bad:**
@@ -38,11 +43,11 @@ import random
 def run(self):
     # Sometimes turn left, sometimes right!
     if random.random() < 0.5:
-        self.turn_right(random.randint(5, 30))
+        self.turn_body = (random.randint(5, 30))
     else:
-        self.turn_left(random.randint(5, 30))
+        self.turn_body = -(random.randint(5, 30))
 
-    self.ahead(random.randint(20, 80))
+    self.forward = random.randint(20, 80)
 ```
 
 ## Part 2: Using Random Numbers (15 minutes)
@@ -93,13 +98,13 @@ def choose_movement():
 def zigzag_movement(self):
     """Move in a zigzag pattern"""
     # Move forward
-    self.ahead(100)
+    self.forward = 100
 
     # Randomly turn left or right
     if random.random() < 0.5:
-        self.turn_right(30)
+        self.turn_body = 30
     else:
-        self.turn_left(30)
+        self.turn_body = -30
 ```
 
 ### Pattern 2: Spiral
@@ -109,8 +114,8 @@ def spiral_movement(self):
     """Move in an expanding spiral"""
     # Gradually increase turn radius
     distance = 20 + (self.time % 100)  # time is game tick counter
-    self.ahead(distance)
-    self.turn_right(20)
+    self.forward = distance
+    self.turn_body = 20
 ```
 
 ### Pattern 3: Random Walk
@@ -120,14 +125,14 @@ def random_walk(self):
     """Move randomly but smoothly"""
     # Random forward distance
     distance = random.randint(30, 100)
-    self.ahead(distance)
+    self.forward = distance
 
     # Random turn (small angles for smooth movement)
     angle = random.randint(-30, 30)
     if angle < 0:
-        self.turn_left(abs(angle))
+        self.turn_body = -(abs(angle))
     else:
-        self.turn_right(angle)
+        self.turn_body = (angle)
 ```
 
 ### Pattern 4: Stop and Go
@@ -138,11 +143,11 @@ def stop_and_go(self):
     # 20% chance to stop
     if random.random() < 0.2:
         # Stop and spin
-        self.turn_right(random.randint(45, 180))
+        self.turn_body = (random.randint(45, 180))
     else:
         # Keep moving
-        self.ahead(50)
-        self.turn_right(10)
+        self.forward = 50
+        self.turn_body = 10
 ```
 
 ## Part 4: Reacting to Events (20 minutes)
@@ -158,15 +163,15 @@ def on_hit_by_bullet(self, bullet):
 
     if reaction == 1:
         # Quick dodge forward
-        self.ahead(100)
+        self.forward = 100
     elif reaction == 2:
         # Sharp turn and retreat
-        self.turn_right(135)
-        self.back(80)
+        self.turn_body = 135
+        self.forward = -80
     elif reaction == 3:
         # Spin and advance
-        self.turn_left(90)
-        self.ahead(120)
+        self.turn_body = -90
+        self.forward = 120
     else:
         # Stop and shoot back!
         angle_to_enemy = bullet.bearing  # Direction bullet came from
@@ -181,29 +186,32 @@ def on_hit_by_bullet(self, bullet):
 Different tactics based on distance:
 
 ```python
-def on_scanned_robot(self, scanned_robot):
+def on_scanned_robot(self, event):
     """Choose tactics based on situation"""
-    distance = scanned_robot.distance
+    # Calculate distance from event coordinates
+    dx = event.x - self.get_x()
+    dy = event.y - self.get_y()
+    distance = math.sqrt(dx**2 + dy**2)
 
     if distance < 100:
         # Close combat - aggressive!
         print("Close combat mode!")
         self.fire(3)  # Max power
-        self.ahead(20)  # Move toward enemy
+        self.forward = 20  # Move toward enemy
     elif distance < 300:
         # Medium range - tactical
         print("Medium range mode!")
         self.fire(2)  # Medium power
         # Strafe (move perpendicular)
-        self.turn_right(90)
-        self.ahead(50)
-        self.turn_left(90)
+        self.turn_body = 90
+        self.forward = 50
+        self.turn_body = -90
     else:
         # Long range - cautious
         print("Sniper mode!")
         self.fire(1)  # Low power (faster bullet)
         # Keep distance
-        self.back(30)
+        self.forward = -30
 ```
 
 ### When You Hit a Wall
@@ -214,17 +222,17 @@ Turn it into an advantage!
 def on_hit_wall(self, wall):
     """Use wall collision as a tactical reset"""
     # Back up
-    self.back(50)
+    self.forward = -50
 
     # Random turn to confuse enemies
     angle = random.choice([45, 90, 135, 180])
     if random.random() < 0.5:
-        self.turn_right(angle)
+        self.turn_body = (angle)
     else:
-        self.turn_left(angle)
+        self.turn_body = -(angle)
 
     # Quick burst forward
-    self.ahead(100)
+    self.forward = 100
 ```
 
 ## Part 5: Your Strategic Tank - "TricksterBot"
@@ -241,8 +249,6 @@ import math
 class TricksterBot:
     def __init__(self):
         self.name = "TricksterBot"
-        self.x = 0
-        self.y = 0
         self.time = 0  # Game tick counter
 
         # Strategy state
@@ -281,46 +287,49 @@ class TricksterBot:
 
     def zigzag_movement(self):
         """Zigzag pattern"""
-        self.ahead(80)
+        self.forward = 80
         if random.random() < 0.5:
-            self.turn_right(30)
+            self.turn_body = 30
         else:
-            self.turn_left(30)
+            self.turn_body = -30
 
     def spiral_movement(self):
         """Spiral outward"""
         distance = 20 + (self.time % 80)
-        self.ahead(distance)
-        self.turn_right(25)
+        self.forward = distance
+        self.turn_body = 25
 
     def random_walk(self):
         """Random but smooth movement"""
         distance = random.randint(40, 100)
-        self.ahead(distance)
+        self.forward = distance
 
         angle = random.randint(-25, 25)
         if angle < 0:
-            self.turn_left(abs(angle))
+            self.turn_body = -(abs(angle))
         else:
-            self.turn_right(angle)
+            self.turn_body = (angle)
 
     def stop_and_go(self):
         """Unpredictable stops"""
         if random.random() < 0.25:
             # Sudden stop and turn
-            self.turn_right(random.randint(60, 180))
+            self.turn_body = (random.randint(60, 180))
         else:
-            self.ahead(60)
-            self.turn_right(12)
+            self.forward = 60
+            self.turn_body = 12
 
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_robot(self, event):
         """Adaptive tactics based on distance"""
-        distance = scanned_robot.distance
+        # Calculate distance from event coordinates
+        dx = event.x - self.get_x()
+        dy = event.y - self.get_y()
+        distance = math.sqrt(dx**2 + dy**2)
 
         # Calculate aim
         angle = self.calculate_angle(
-            self.x, self.y,
-            scanned_robot.x, scanned_robot.y
+            self.get_x(), self.get_y(),
+            event.x, event.y
         )
 
         if distance < 150:
@@ -329,7 +338,7 @@ class TricksterBot:
             self.turn_gun_to(angle)
             self.fire(3)
             # Charge!
-            self.ahead(30)
+            self.forward = 30
 
         elif distance < 350:
             # Medium range - tactical
@@ -338,10 +347,10 @@ class TricksterBot:
             self.fire(2)
             # Strafe
             if random.random() < 0.5:
-                self.turn_right(90)
+                self.turn_body = 90
             else:
-                self.turn_left(90)
-            self.ahead(40)
+                self.turn_body = -90
+            self.forward = 40
 
         else:
             # Long range - sniper
@@ -350,7 +359,7 @@ class TricksterBot:
             self.fire(1)
             # Maintain distance
             if random.random() < 0.3:
-                self.back(40)
+                self.forward = -40
 
     def on_hit_by_bullet(self, bullet):
         """Unpredictable reactions"""
@@ -361,19 +370,19 @@ class TricksterBot:
 
         if reaction == 1:
             # Quick dodge
-            self.ahead(100)
+            self.forward = 100
         elif reaction == 2:
             # Sharp turn and retreat
-            self.turn_right(135)
-            self.back(80)
+            self.turn_body = 135
+            self.forward = -80
         elif reaction == 3:
             # Aggressive counter
-            self.turn_left(90)
-            self.ahead(120)
+            self.turn_body = -90
+            self.forward = 120
         elif reaction == 4:
             # Spin move
-            self.turn_right(random.randint(120, 240))
-            self.ahead(60)
+            self.turn_body = (random.randint(120, 240))
+            self.forward = 60
         else:
             # Stop and shoot back
             # (bearing tells us where bullet came from)
@@ -386,16 +395,16 @@ class TricksterBot:
     def on_hit_wall(self, wall):
         """Tactical wall bounce"""
         print("🧱 Wall! Bouncing...")
-        self.back(60)
+        self.forward = -60
 
         # Random escape angle
         angle = random.choice([60, 90, 120, 150])
         if random.random() < 0.5:
-            self.turn_right(angle)
+            self.turn_body = (angle)
         else:
-            self.turn_left(angle)
+            self.turn_body = -(angle)
 
-        self.ahead(80)
+        self.forward = 80
 
     def calculate_angle(self, from_x, from_y, to_x, to_y):
         """Calculate angle to target"""
@@ -405,13 +414,19 @@ class TricksterBot:
     def ahead(self, distance):
         pass
 
-    def back(self, distance):
+    # Helper method for forward property
+def back(self, distance):
+    self.forward = -distance
         pass
 
-    def turn_right(self, degrees):
+    # Helper method for turn_body property
+def turn_right(self, degrees):
+    self.turn_body = degrees
         pass
 
-    def turn_left(self, degrees):
+    # Helper method for turn_body property
+def turn_left(self, degrees):
+    self.turn_body = -degrees
         pass
 
     def turn_radar_right(self, degrees):

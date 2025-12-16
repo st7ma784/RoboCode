@@ -1,0 +1,22 @@
+{
+  "name": "ChallengerTank",
+  "version": "1.0.0",
+  "authors": [
+    "Claude Code"
+  ],
+  "description": "Beyond the Tutorials",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "ChallengerTank",
+  "botModule": "challenger_tank"
+}

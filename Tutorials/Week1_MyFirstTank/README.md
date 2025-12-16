@@ -1,5 +1,10 @@
 # Week 1: My First Tank! 🎮🚀
 
+> **Note:** This tutorial uses the BaseBot API which uses **property assignments** instead of method calls.
+> - Movement: `self.forward = 100` (not `self.forward(100)`)
+> - Turning: `self.turn_body = 45` (not `self.turn_right(45)`)
+> - All event handlers must be `async` and use `await` for actions like `await self.fire()`
+
 Welcome to Python Tank Wars! Get ready to build your very own fighting robot tank and watch it battle in the arena!
 
 This week you'll:
@@ -263,7 +268,7 @@ class MyFirstTank:
     def run(self):
         """This is the tank's brain - it runs over and over!"""
         # Spin our tank
-        self.turn_right(10)
+        self.turn_body = 10
 
         # Move forward a little
         self.ahead(20)
@@ -271,9 +276,13 @@ class MyFirstTank:
         # Shoot!
         self.fire(1)
 
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_robot(self, event):
         """Called when we see an enemy tank!"""
-        print(f"I see an enemy at {scanned_robot.distance} units away!")
+        # Calculate distance from event coordinates
+        dx = event.x - self.get_x()
+        dy = event.y - self.get_y()
+        distance = math.sqrt(dx**2 + dy**2)
+        print(f"I see an enemy at {distance:.1f} units away!")
         # Shoot at them!
         self.fire(3)
 
@@ -281,7 +290,7 @@ class MyFirstTank:
         """Called when we get hit by a bullet!"""
         print("Ouch! I got hit!")
         # Turn around to face attacker
-        self.turn_right(90)
+        self.turn_body = 90
 ```
 
 ### Understanding the Code
@@ -304,7 +313,7 @@ This runs once when your tank is born. It's like naming your tank when it's crea
 #### The run Method
 ```python
 def run(self):
-    self.turn_right(10)
+    self.turn_body = 10
     self.ahead(20)
     self.fire(1)
 ```
@@ -503,9 +512,9 @@ Next week, you'll learn about **angles** and **trigonometry** so your tank can a
 
 ### Movement Commands
 - `ahead(distance)` - Move forward
-- `back(distance)` - Move backward
-- `turn_right(degrees)` - Turn right
-- `turn_left(degrees)` - Turn left
+- `self.forward = -distance` - Move backward (negative distance)
+- `self.turn_body = degrees` - Turn right (positive degrees)
+- `self.turn_body = -degrees` - Turn left (negative degrees)
 
 ### Shooting Commands
 - `fire(power)` - Shoot! Power can be 1-3

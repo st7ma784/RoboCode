@@ -1,0 +1,21 @@
+{
+  "name": "VampireTeam",
+  "version": "1.0.0",
+  "authors": [
+    "RoboCode Tutorial - Week 9"
+  ],
+  "description": "Unique energy farming team: Master vampire farms servant bots for health when needed, then dominates enemies.",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "team"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "VampireMaster",
+  "botModule": "vampire_team"
+}

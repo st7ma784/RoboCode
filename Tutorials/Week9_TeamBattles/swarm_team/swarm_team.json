@@ -1,0 +1,21 @@
+{
+  "name": "SwarmTeam",
+  "version": "1.0.0",
+  "authors": [
+    "RoboCode Tutorial - Week 9"
+  ],
+  "description": "Coordinated pack hunting team with leader and flanking followers. Uses formation tactics and focus fire.",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "team"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "SwarmLeader",
+  "botModule": "swarm_team"
+}

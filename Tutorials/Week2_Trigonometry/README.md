@@ -1,5 +1,10 @@
 # Week 2: Math Magic - Predicting Where Tanks Will Be! 📐
 
+> **Note:** This tutorial uses the BaseBot API which uses **property assignments** instead of method calls.
+> - Movement: `self.forward = 100` (not `self.forward(100)`)
+> - Turning: `self.turn_body = 45` (not `self.turn_right(45)`)
+> - All event handlers must be `async` and use `await` for actions like `await self.fire()`
+
 This week you'll learn the secret math that makes your tank a sharpshooter! You'll learn:
 1. What angles are and how to use them
 2. How to calculate distances
@@ -153,12 +158,18 @@ def predict_position(current_x, current_y, velocity, heading, time):
 ### Using It in Your Tank
 
 ```python
-def on_scanned_robot(self, scanned_robot):
+def on_scanned_robot(self, event):
     """When we spot an enemy"""
-    # Get enemy info
-    enemy_distance = scanned_robot.distance
-    enemy_heading = scanned_robot.heading
-    enemy_velocity = scanned_robot.velocity
+    # Get enemy info from event
+    enemy_x = event.x
+    enemy_y = event.y
+    enemy_heading = event.direction
+    enemy_velocity = event.speed
+
+    # Calculate distance
+    dx = enemy_x - self.get_x()
+    dy = enemy_y - self.get_y()
+    enemy_distance = math.sqrt(dx**2 + dy**2)
 
     # How long will bullet take to reach them?
     bullet_speed = 20  # pixels per tick (for power 1)
@@ -166,15 +177,15 @@ def on_scanned_robot(self, scanned_robot):
 
     # Where will they be?
     future_x, future_y = predict_position(
-        scanned_robot.x,
-        scanned_robot.y,
+        enemy_x,
+        enemy_y,
         enemy_velocity,
         enemy_heading,
         time_to_hit
     )
 
     # Aim at future position!
-    angle_to_future = calculate_angle(self.x, self.y, future_x, future_y)
+    angle_to_future = calculate_angle(self.get_x(), self.get_y(), future_x, future_y)
     self.turn_gun_to(angle_to_future)
     self.fire(1)
 ```
@@ -200,7 +211,7 @@ class PredictorBot:
 
         # Move in a circle to dodge bullets
         self.ahead(50)
-        self.turn_right(15)
+        self.turn_body = 15
 
     def calculate_angle(self, from_x, from_y, to_x, to_y):
         """Calculate angle from one point to another"""
@@ -219,21 +230,30 @@ class PredictorBot:
         future_y = y + velocity * time * math.cos(heading_rad)
         return future_x, future_y
 
-    def on_scanned_robot(self, scanned_robot):
+    def on_scanned_robot(self, event):
         """When we see an enemy - predict and shoot!"""
+        # Get enemy coordinates from event
+        enemy_x = event.x
+        enemy_y = event.y
+
+        # Calculate distance
+        dx = enemy_x - self.get_x()
+        dy = enemy_y - self.get_y()
+        distance = math.sqrt(dx**2 + dy**2)
+
         # Bullet speed based on power
         bullet_power = 2
         bullet_speed = 20 - 3 * bullet_power  # Formula for bullet speed
 
         # Time for bullet to reach current position
-        time_to_hit = scanned_robot.distance / bullet_speed
+        time_to_hit = distance / bullet_speed
 
         # Predict where enemy will be
         future_x, future_y = self.predict_position(
-            scanned_robot.x,
-            scanned_robot.y,
-            scanned_robot.velocity,
-            scanned_robot.heading,
+            enemy_x,
+            enemy_y,
+            event.speed,
+            event.direction,
             time_to_hit
         )
 
@@ -249,7 +269,7 @@ class PredictorBot:
     def on_hit_by_bullet(self, hit_by_bullet):
         """React when hit"""
         # Turn perpendicular to the bullet to dodge better
-        self.turn_right(90)
+        self.turn_body = 90
         self.ahead(100)
 ```
 

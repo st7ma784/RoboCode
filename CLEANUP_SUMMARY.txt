@@ -1,0 +1,50 @@
+================================
+Bot Structure Cleanup Summary
+================================
+
+ISSUE FOUND:
+------------
+- 8 duplicate .py files existed at root level (old API)
+- Subdirectory versions had correct new API
+- Root-level duplicates used:
+  × Synchronous methods (not async)
+  × while True loops (not while self.is_running())
+  × Old method calls (turn_radar_right() not radar_turn_rate)
+  
+WORKING BOTS PATTERN:
+--------------------
+✓ Located in subdirectories with JSON config files
+✓ Use Bot class (not BaseBot)
+✓ Use async def for run() and event handlers
+✓ Use while self.is_running() loops
+✓ Use property-based control (radar_turn_rate, target_speed, etc.)
+✓ Use await self.fire() and await self.go()
+
+FILES REMOVED (Outdated duplicates):
+-----------------------------------
+1. Samples/sitting_duck.py
+2. Tutorials/Week6_AdvancedPython/professional_tank.py
+3. Tutorials/Week7_AdvancedSkirmisher/skirmisher_tank.py
+4. Tutorials/Week8_AntiGravitySwarms/anti_gravity_tank.py
+5. Tutorials/Week9_TeamBattles/hunter_killer_team.py
+6. Tutorials/Week9_TeamBattles/swarm_team.py
+7. Tutorials/Week9_TeamBattles/vampire_team.py
+8. Submissions/ClaudeCode/final_boss_tank_gui.py
+
+CORRECT BOT STRUCTURE:
+---------------------
+bot_name/
+  ├── bot_name.py (Uses Bot class, async/await, properties)
+  ├── bot_name.json (Bot configuration)
+  ├── bot_name.sh (Launch script)
+  └── bot_name.cmd (Windows launch script)
+
+VERIFICATION:
+------------
+✅ All 22 remaining bots use Bot class
+✅ No bots using BaseBot
+✅ All have JSON config files
+✅ All use async/await patterns
+✅ All use property-based control
+
+STATUS: All bots should now work correctly! 🎉

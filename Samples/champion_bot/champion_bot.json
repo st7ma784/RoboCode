@@ -1,0 +1,22 @@
+{
+  "name": "ChampionBot",
+  "version": "1.0.0",
+  "authors": [
+    "RoboCode Tutorial"
+  ],
+  "description": "Master tank using all advanced techniques",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "ChampionBot",
+  "botModule": "champion_bot"
+}

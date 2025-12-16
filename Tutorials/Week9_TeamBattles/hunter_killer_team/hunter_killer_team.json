@@ -1,0 +1,21 @@
+{
+  "name": "HunterKillerTeam",
+  "version": "1.0.0",
+  "authors": [
+    "RoboCode Tutorial - Week 9"
+  ],
+  "description": "Specialized role team: Hunters scout and tag, Killer eliminates with heavy firepower.",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "team"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "Hunter1",
+  "botModule": "hunter_killer_team"
+}

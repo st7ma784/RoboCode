@@ -16,11 +16,18 @@ This folder contains detailed explanations of concepts you'll use in RoboCode:
 - **[Battle Strategies](strategy_guide.md)** - Movement patterns and tactics
 - Learn winning strategies and when to use them
 
+### Advanced AI & Learning
+- **[AI & Machine Learning Guide](ai_learning_guide.md)** - Overview of AI techniques
+- **[Genetic Algorithms](../Tutorials/Week10_GeneticAlgorithm/README.md)** - Evolutionary parameter optimization
+- **[Q-Learning](../Tutorials/Week11_QLearning/README.md)** - Reinforcement learning for combat
+- Learn how AI can discover optimal tactics automatically
+
 ## How to Use These Guides
 
 1. **Start with Python Basics** if you're new to programming
 2. **Read Trigonometry Guide** when you start Week 2
 3. **Study Battle Strategies** alongside Weeks 4-5
+4. **Explore AI techniques** in Weeks 10-11 for advanced optimization
 
 ## Learning Tips
 

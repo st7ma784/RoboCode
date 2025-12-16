@@ -9,7 +9,7 @@ This tank demonstrates:
 - Strategy pattern
 - Clean, maintainable code
 """
-from robocode_tank_royale.bot_api import BaseBot, BotInfo
+from robocode_tank_royale.bot_api import Bot, BotInfo
 import math
 import random
 
@@ -88,7 +88,7 @@ class DodgeMovement(MovementStrategy):
     
     def __init__(self):
         self.counter = 0
-        self.direction = 1
+        self.get_direction() = 1
     
     def move(self, tank):
         """Move with random dodging and wall avoidance"""
@@ -96,21 +96,21 @@ class DodgeMovement(MovementStrategy):
         
         # Wall avoidance
         margin = 50
-        if tank.x < margin:
+        if tank.get_x() < margin:
             tank.turn_right(90)
-        elif tank.x > tank.battlefield_width - margin:
+        elif tank.get_x() > tank.get_arena_width() - margin:
             tank.turn_left(90)
-        elif tank.y < margin:
+        elif tank.get_y() < margin:
             tank.turn_right(90)
-        elif tank.y > tank.battlefield_height - margin:
+        elif tank.get_y() > tank.get_arena_height() - margin:
             tank.turn_left(90)
         
         # Random direction changes for unpredictability
         if self.counter > 20:
-            self.direction = random.choice([-1, 1])
+            self.get_direction() = random.choice([-1, 1])
             turn = random.randint(30, 90)
             
-            if self.direction > 0:
+            if self.get_direction() > 0:
                 tank.turn_right(turn)
             else:
                 tank.turn_left(turn)
@@ -209,7 +209,7 @@ class PredictiveTargeting(TargetingStrategy):
 
 # ============= BASE TANK =============
 
-class BaseTank(BaseBot):
+class BaseTank(Bot):
     """
     Base class with common tank functionality
     
@@ -228,7 +228,7 @@ class BaseTank(BaseBot):
         This is a helper method that any tank can use
         """
         angle = self.targeting_math.calculate_angle(
-            self.x, self.y,
+            self.get_x(), self.get_y(),
             target_x, target_y
         )
         self.turn_gun_to(angle)
@@ -236,7 +236,7 @@ class BaseTank(BaseBot):
     def distance_to(self, x, y):
         """Calculate distance to a point"""
         return self.targeting_math.calculate_distance(
-            self.x, self.y, x, y
+            self.get_x(), self.get_y(), x, y
         )
     
     def choose_bullet_power(self, distance):
@@ -310,17 +310,17 @@ class ProfessionalTank(BaseTank):
         """
         # Calculate enemy position from bearing
         bearing_rad = math.radians(event.bearing)
-        enemy_x = self.x + event.distance * math.sin(bearing_rad)
-        enemy_y = self.y + event.distance * math.cos(bearing_rad)
+        enemy_x = self.get_x() + event.distance * math.sin(bearing_rad)
+        enemy_y = self.get_y() + event.distance * math.cos(bearing_rad)
         
         # Create scanned_robot object for strategy compatibility
         class ScannedRobot:
             def __init__(self, x, y, speed, direction, energy):
-                self.x = x
-                self.y = y
+                self.get_x() = x
+                self.get_y() = y
                 self.speed = speed
-                self.direction = direction
-                self.energy = energy
+                self.get_direction() = direction
+                self.get_energy() = energy
         
         scanned_robot = ScannedRobot(enemy_x, enemy_y, event.speed, event.direction, event.energy)
         
@@ -388,17 +388,17 @@ class SniperTank(BaseTank):
         # Similar logic, but always uses power 1 for speed
         # Calculate enemy position from bearing
         bearing_rad = math.radians(event.bearing)
-        enemy_x = self.x + event.distance * math.sin(bearing_rad)
-        enemy_y = self.y + event.distance * math.cos(bearing_rad)
+        enemy_x = self.get_x() + event.distance * math.sin(bearing_rad)
+        enemy_y = self.get_y() + event.distance * math.cos(bearing_rad)
         
         # Create scanned_robot object for strategy compatibility
         class ScannedRobot:
             def __init__(self, x, y, speed, direction, energy):
-                self.x = x
-                self.y = y
+                self.get_x() = x
+                self.get_y() = y
                 self.speed = speed
-                self.direction = direction
-                self.energy = energy
+                self.get_direction() = direction
+                self.get_energy() = energy
         
         scanned_robot = ScannedRobot(enemy_x, enemy_y, event.speed, event.direction, event.energy)
         

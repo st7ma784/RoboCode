@@ -1,5 +1,10 @@
 # Week 8: Anti-Gravity & Swarm Intelligence! 🧲🤖
 
+> **Note:** This tutorial uses the BaseBot API which uses **property assignments** instead of method calls.
+> - Movement: `self.forward = 100` (not `self.forward(100)`)
+> - Turning: `self.turn_body = 45` (not `self.turn_right(45)`)
+> - All event handlers must be `async` and use `await` for actions like `await self.fire()`
+
 Imagine enemies surrounding you like a pack of wolves! This week you'll learn how to:
 
 1. Use anti-gravity movement to escape from crowds

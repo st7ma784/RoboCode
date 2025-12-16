@@ -1,5 +1,10 @@
 # Week 5: Master Targeting! 🎯
 
+> **Note:** This tutorial uses the BaseBot API which uses **property assignments** instead of method calls.
+> - Movement: `self.forward = 100` (not `self.forward(100)`)
+> - Turning: `self.turn_body = 45` (not `self.turn_right(45)`)
+> - All event handlers must be `async` and use `await` for actions like `await self.fire()`
+
 Welcome to the final week! You'll become a targeting master by learning:
 1. How to choose the right bullet power
 2. Calculating hit probability
@@ -101,8 +106,11 @@ def calculate_hit_probability(distance, enemy_velocity, bullet_power):
 ```python
 def on_scanned_robot(self, scanned_robot):
     """Smart shooting based on probability"""
-    distance = scanned_robot.distance
-    velocity = scanned_robot.velocity
+    # Calculate distance from event coordinates
+    dx = event.x - self.get_x()
+    dy = event.y - self.get_y()
+    distance = math.sqrt(dx**2 + dy**2)
+    velocity = event.speed
 
     # Try each power level
     prob_power1 = calculate_hit_probability(distance, velocity, 1)
@@ -188,10 +196,10 @@ def on_scanned_robot(self, scanned_robot):
     """Only shoot if simulation shows we'll hit"""
     # Predict where enemy will be
     future_x, future_y = self.predict_position(
-        scanned_robot.x,
-        scanned_robot.y,
-        scanned_robot.velocity,
-        scanned_robot.heading,
+        event.x,
+        event.y,
+        event.speed,
+        event.direction,
         time_to_hit
     )
 
@@ -218,11 +226,11 @@ def __init__(self):
     self.energy = 100
     self.enemy_energy = None  # Track enemy energy
 
-def on_scanned_robot(self, scanned_robot):
+def on_scanned_robot(self, event):
     """Track enemy energy changes"""
     if self.enemy_energy is not None:
         # Did enemy lose energy?
-        energy_drop = self.enemy_energy - scanned_robot.energy
+        energy_drop = self.enemy_energy - event.energy
 
         if energy_drop > 0 and energy_drop <= 3:
             print(f"Enemy fired! Power ~{energy_drop}")
@@ -232,7 +240,7 @@ def on_scanned_robot(self, scanned_robot):
             print(f"Enemy took damage: {energy_drop}")
 
     # Update tracked energy
-    self.enemy_energy = scanned_robot.energy
+    self.enemy_energy = event.energy
 ```
 
 ### Energy-Based Strategy
@@ -319,7 +327,7 @@ class SniperBot:
         # Safe movement (from Week 3)
         if not self.is_too_close_to_wall(50):
             self.ahead(40)
-            self.turn_right(15)
+            self.turn_body = 15
         else:
             self.avoid_walls()
 
@@ -456,9 +464,9 @@ class SniperBot:
     def dodge(self):
         """Quick evasive maneuver"""
         if random.random() < 0.5:
-            self.turn_right(90)
+            self.turn_body = 90
         else:
-            self.turn_left(90)
+            self.turn_body = -90
         self.ahead(80)
 
     def is_too_close_to_wall(self, margin):
@@ -470,8 +478,8 @@ class SniperBot:
 
     def avoid_walls(self):
         """From Week 3"""
-        self.back(50)
-        self.turn_right(90)
+        self.forward = -50
+        self.turn_body = 90
 
     def is_valid_target(self, x, y):
         """From Week 3"""
@@ -502,11 +510,17 @@ class SniperBot:
     # Game engine methods
     def ahead(self, distance):
         pass
-    def back(self, distance):
+    # Helper method for forward property
+def back(self, distance):
+    self.forward = -distance
         pass
-    def turn_right(self, degrees):
+    # Helper method for turn_body property
+def turn_right(self, degrees):
+    self.turn_body = degrees
         pass
-    def turn_left(self, degrees):
+    # Helper method for turn_body property
+def turn_left(self, degrees):
+    self.turn_body = -degrees
         pass
     def turn_radar_right(self, degrees):
         pass

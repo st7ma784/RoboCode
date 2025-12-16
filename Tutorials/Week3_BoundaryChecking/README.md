@@ -1,5 +1,10 @@
 # Week 3: Stay Inside the Lines! ✅
 
+> **Note:** This tutorial uses the BaseBot API which uses **property assignments** instead of method calls.
+> - Movement: `self.forward = 100` (not `self.forward(100)`)
+> - Turning: `self.turn_body = 45` (not `self.turn_right(45)`)
+> - All event handlers must be `async` and use `await` for actions like `await self.fire()`
+
 This week you'll learn how to keep your tank safe by:
 1. Detecting walls before you hit them
 2. Checking if your aim is valid
@@ -58,7 +63,7 @@ distance_to_wall = 30
 
 if distance_to_wall < 50:
     print("Too close! Turn away!")
-    self.turn_right(90)
+    self.turn_body = 90
 else:
     print("Safe to keep going")
     self.ahead(20)
@@ -108,14 +113,14 @@ def is_too_close_to_wall(self, margin=50):
     Returns: True if too close, False if safe
     """
     # Get arena size
-    arena_width = self.battlefield_width   # Usually 800
-    arena_height = self.battlefield_height  # Usually 600
+    arena_width = self.get_arena_width()   # Usually 800
+    arena_height = self.get_arena_height()  # Usually 600
 
     # Check each edge
-    too_close_left = self.x < margin
-    too_close_right = self.x > (arena_width - margin)
-    too_close_top = self.y < margin
-    too_close_bottom = self.y > (arena_height - margin)
+    too_close_left = self.get_x() < margin
+    too_close_right = self.get_x() > (arena_width - margin)
+    too_close_top = self.get_y() < margin
+    too_close_bottom = self.get_y() > (arena_height - margin)
 
     # Return True if ANY edge is too close
     return too_close_left or too_close_right or too_close_top or too_close_bottom
@@ -131,10 +136,10 @@ def find_nearest_wall(self):
     Returns: "top", "bottom", "left", or "right"
     """
     # Calculate distance to each wall
-    dist_to_left = self.x
-    dist_to_right = self.battlefield_width - self.x
-    dist_to_top = self.y
-    dist_to_bottom = self.battlefield_height - self.y
+    dist_to_left = self.get_x()
+    dist_to_right = self.get_arena_width() - self.get_x()
+    dist_to_top = self.get_y()
+    dist_to_bottom = self.get_arena_height() - self.get_y()
 
     # Find the minimum
     distances = {
@@ -190,8 +195,8 @@ def is_valid_target(self, x, y):
     # Add a small margin for safety
     margin = 20
 
-    x_ok = margin < x < (self.battlefield_width - margin)
-    y_ok = margin < y < (self.battlefield_height - margin)
+    x_ok = margin < x < (self.get_arena_width() - margin)
+    y_ok = margin < y < (self.get_arena_height() - margin)
 
     return x_ok and y_ok
 ```
@@ -201,17 +206,26 @@ def is_valid_target(self, x, y):
 Remember Week 2's prediction? Let's add safety checks:
 
 ```python
-def predict_and_validate(self, scanned_robot):
+def predict_and_validate(self, event):
     """Predict enemy position and check if it's valid"""
+    # Get enemy info from event
+    enemy_x = event.x
+    enemy_y = event.y
+
+    # Calculate distance
+    dx = enemy_x - self.get_x()
+    dy = enemy_y - self.get_y()
+    distance = math.sqrt(dx**2 + dy**2)
+
     # Calculate prediction (from Week 2)
     bullet_speed = 20 - 3 * 2  # power 2
-    time_to_hit = scanned_robot.distance / bullet_speed
+    time_to_hit = distance / bullet_speed
 
     future_x, future_y = self.predict_position(
-        scanned_robot.x,
-        scanned_robot.y,
-        scanned_robot.velocity,
-        scanned_robot.heading,
+        enemy_x,
+        enemy_y,
+        event.speed,
+        event.direction,
         time_to_hit
     )
 
@@ -222,7 +236,7 @@ def predict_and_validate(self, scanned_robot):
     else:
         print("Predicted position is outside arena!")
         # Shoot at current position instead
-        return scanned_robot.x, scanned_robot.y
+        return enemy_x, enemy_y
 ```
 
 ## Part 5: Your Safe Tank - "BoundaryBot"
@@ -253,7 +267,7 @@ class BoundaryBot:
         else:
             # Safe to move
             self.ahead(50)
-            self.turn_right(10)
+            self.turn_body = 10
 
         # Keep radar spinning
         self.turn_radar_right(45)
@@ -323,14 +337,16 @@ class BoundaryBot:
     def on_hit_wall(self, hit_wall):
         """Emergency response if we hit a wall"""
         print("ERROR: Hit a wall! This shouldn't happen!")
-        self.back(100)
-        self.turn_right(135)
+        self.forward = -100
+        self.turn_body = 135
 
     # Game engine methods
     def ahead(self, distance):
         pass
 
-    def turn_right(self, degrees):
+    # Helper method for turn_body property
+def turn_right(self, degrees):
+    self.turn_body = degrees
         pass
 
     def turn_to(self, degrees):
@@ -345,7 +361,9 @@ class BoundaryBot:
     def fire(self, power):
         pass
 
-    def back(self, distance):
+    # Helper method for forward property
+def back(self, distance):
+    self.forward = -distance
         pass
 ```
 

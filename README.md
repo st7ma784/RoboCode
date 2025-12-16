@@ -74,6 +74,36 @@ Follow these weekly tutorials in order:
 - Implement smart target selection and threat assessment
 - Master vectorized operations and matrix math
 
+### 🌊 Week 8: Anti-Gravity & Swarm Intelligence
+**Location:** `Tutorials/Week8_AntiGravitySwarms/`
+- Physics-based movement with repulsive forces
+- Detect and escape from enemy swarms
+- Analyze cluster formations and danger zones
+- Advanced force-based navigation algorithms
+
+### 🤝 Week 9: Team Battles - Coordinated Combat
+**Location:** `Tutorials/Week9_TeamBattles/`
+- Build tanks that work together in teams
+- Share information between team members
+- Coordinate attacks and defensive formations
+- Implement team-based strategies and tactics
+
+### 🧬 Week 10: Genetic Algorithms - Evolving the Perfect Tank
+**Location:** `Tutorials/Week10_GeneticAlgorithm/`
+- Learn evolutionary optimization techniques
+- Evolve combat parameters automatically
+- Implement mutation and crossover operations
+- Let AI discover optimal tactics through generations
+- Understand fitness functions and selection strategies
+
+### 🤖 Week 11: Q-Learning - Real-Time AI Learning
+**Location:** `Tutorials/Week11_QLearning/`
+- Master reinforcement learning fundamentals
+- Implement Q-Learning algorithm for combat
+- Learn state discretization and action selection
+- Build tanks that adapt during battle
+- Explore exploration vs exploitation tradeoff
+
 ## Sample Tanks
 
 Check out `Samples/` for example tanks:
@@ -89,6 +119,8 @@ The `Guides/` folder has detailed explanations:
 - **Python Basics** - Variables, functions, classes
 - **Trigonometry for Tanks** - Angles, distance, prediction
 - **Strategy Guide** - Movement patterns and tactics
+- **Genetic Algorithms** - Evolutionary optimization (Week 10)
+- **Q-Learning** - Reinforcement learning (Week 11)
 
 ## Submitting Your Tank
 
