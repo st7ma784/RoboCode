@@ -955,8 +955,8 @@ class AntiGravityTank:
         
         # Aim and fire
         angle = np.degrees(np.arctan2(
-            future_x - self.x,
-            future_y - self.y
+            future_x - self.get_x(),
+            future_y - self.get_y()
         ))
         
         self.turn_gun_to(angle)
@@ -997,7 +997,7 @@ class AntiGravityTank:
         
         # Track position
         if self.tick % 10 == 0:
-            self.position_history.append((self.x, self.y))
+            self.position_history.append((self.get_x(), self.get_y()))
             
             # Print movement pattern periodically
             if len(self.position_history) > 50:
