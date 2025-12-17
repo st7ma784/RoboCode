@@ -19,6 +19,11 @@ class SniperBot(Bot):
 
     def __init__(self, bot_info=None):
         super().__init__(bot_info=bot_info)
+        
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
+        
         # Statistics tracking
         self.shots_fired = 0
         self.shots_hit = 0

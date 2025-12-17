@@ -39,11 +39,11 @@ class EnemyTracker:
     
     def __init__(self):
         self.enemy_ids = []
-        self.get_x() = np.array([])
-        self.get_y() = np.array([])
+        self.x = np.array([])
+        self.y = np.array([])
         self.vx = np.array([])
         self.vy = np.array([])
-        self.get_energy() = np.array([])
+        self.energy = np.array([])
         self.last_seen = np.array([])
     
     def update(self, enemy_id, x, y, vx, vy, energy, tick):
@@ -58,11 +58,11 @@ class EnemyTracker:
             self.last_seen[idx] = tick
         else:
             self.enemy_ids.append(enemy_id)
-            self.get_x() = np.append(self.get_x(), x)
-            self.get_y() = np.append(self.get_y(), y)
+            self.x = np.append(self.x, x)
+            self.y = np.append(self.y, y)
             self.vx = np.append(self.vx, vx)
             self.vy = np.append(self.vy, vy)
-            self.get_energy() = np.append(self.get_energy(), energy)
+            self.energy = np.append(self.energy, energy)
             self.last_seen = np.append(self.last_seen, tick)
     
     def cleanup(self, current_tick, max_age=100):
@@ -79,11 +79,11 @@ class EnemyTracker:
         
         keep_idx = np.where(keep)[0]
         self.enemy_ids = [self.enemy_ids[i] for i in keep_idx]
-        self.get_x() = self.get_x()[keep]
-        self.get_y() = self.get_y()[keep]
+        self.x = self.x[keep]
+        self.y = self.y[keep]
         self.vx = self.vx[keep]
         self.vy = self.vy[keep]
-        self.get_energy() = self.get_energy()[keep]
+        self.energy = self.energy[keep]
         self.last_seen = self.last_seen[keep]
     
     def count(self):
@@ -308,7 +308,7 @@ class AntiGravityTank(Bot):
         
         # State
         self.tick = 0
-        self.get_radar_direction() = 1
+        self.radar_direction = 1
         
         # Statistics
         self.max_enemies_seen = 0
@@ -340,9 +340,9 @@ class AntiGravityTank(Bot):
             self.movement.move(self, self.enemies)
             
             # Sweep radar to find enemies
-            self.radar_turn_rate = self.get_radar_direction() * 45
+            self.radar_turn_rate = self.radar_direction * 45
             if self.tick % 8 == 0:
-                self.get_radar_direction() *= -1  # Reverse direction
+                self.radar_direction *= -1  # Reverse direction
             
             # Engage targets
             if self.enemies.count() > 0:

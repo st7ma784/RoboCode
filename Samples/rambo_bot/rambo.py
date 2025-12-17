@@ -26,6 +26,11 @@ class Rambo(Bot):
     def __init__(self, bot_info=None):
         super().__init__(bot_info=bot_info)
 
+        # Enable independence for gun and radar
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
+
         # Rambo's signature colors (camo green)
         self.body_color = Color.from_rgb(85, 107, 47)      # Dark olive green
         self.turret_color = Color.from_rgb(107, 142, 35)   # Olive drab
@@ -50,7 +55,7 @@ class Rambo(Bot):
             self.aim_inward()
 
             # Radar sweeps constantly
-            self.radar_turn_rate = 45
+            self.turn_radar_right(45)
 
             await self.go()
 
@@ -69,8 +74,11 @@ class Rambo(Bot):
 
         min_dist = min(dist_left, dist_right, dist_top, dist_bottom)
 
-        # Target speed along wall
-        self.target_speed = 50 * self.move_direction
+        # Move along wall
+        if self.move_direction > 0:
+            self.forward(50)
+        else:
+            self.back(50)
 
         # Determine direction to follow wall
         if min_dist == dist_left:
@@ -116,7 +124,11 @@ class Rambo(Bot):
         # Turn toward target heading
         current_heading = self.get_direction()
         turn_needed = TankMath.normalize_angle(target_heading - current_heading)
-        self.turn_rate = max(-10, min(10, turn_needed))
+        clamped_turn = max(-10, min(10, turn_needed))
+        if clamped_turn < 0:
+            self.turn_left(abs(clamped_turn))
+        else:
+            self.turn_right(clamped_turn)
 
     def aim_inward(self):
         """Keep gun pointing toward arena center with minimal movement"""
@@ -139,7 +151,11 @@ class Rambo(Bot):
         # Minimal gun adjustment
         current_gun = self.get_gun_direction()
         turn_needed = TankMath.normalize_angle(target_gun_angle - current_gun)
-        self.gun_turn_rate = max(-5, min(5, turn_needed))  # Slow, minimal turns
+        clamped_turn = max(-5, min(5, turn_needed))  # Slow, minimal turns
+        if clamped_turn < 0:
+            self.turn_gun_left(abs(clamped_turn))
+        else:
+            self.turn_gun_right(clamped_turn)
 
     async def on_scanned_bot(self, event):
         """
@@ -251,8 +267,12 @@ class Rambo(Bot):
     async def on_hit_wall(self, event):
         """Reverse direction when hitting wall"""
         self.move_direction *= -1
-        self.target_speed = 50 * self.move_direction
-
+        # Movement will be updated in next run() iteration
+        if self.move_direction > 0:
+            self.forward(50)
+        else:
+            self.back(50)
+            
     async def on_hit_by_bullet(self, event):
         """React to being hit by adjusting movement"""
         # Quick dodge by reversing

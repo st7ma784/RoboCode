@@ -1,9 +1,9 @@
 # Week 2: Math Magic - Predicting Where Tanks Will Be! 📐
 
-> **Note:** This tutorial uses the BaseBot API which uses **property assignments** instead of method calls.
-> - Movement: `self.forward = 100` (not `self.forward(100)`)
-> - Turning: `self.turn_body = 45` (not `self.turn_right(45)`)
-> - All event handlers must be `async` and use `await` for actions like `await self.fire()`
+> **Important:** This tutorial uses the **Bot API** (the friendly, simple API).
+> - Use `Bot` instead of `BaseBot`
+> - Simple method calls like `self.forward(100)` and `self.turn_right(45)`
+> - Much easier to understand!
 
 This week you'll learn the secret math that makes your tank a sharpshooter! You'll learn:
 1. What angles are and how to use them

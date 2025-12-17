@@ -23,6 +23,11 @@ class ChampionBot(Bot):
     def __init__(self, bot_info=None):
         super().__init__(bot_info=bot_info)
         
+        # Set independence flags - gun and radar move independently
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
+        
         # Set distinctive color - PURPLE!
         self.body_color = Color.from_rgb(156, 39, 176)  # Purple
         self.turret_color = Color.from_rgb(233, 30, 99)  # Pink
@@ -76,8 +81,8 @@ class ChampionBot(Bot):
                     self.execute_movement()
                     self.pattern_timer -= 1
 
-            # Smart radar
-            self.radar_turn_rate = 20
+            # Smart radar - wider sweep
+            self.turn_radar_right(45)
             
             await self.go()
 
@@ -106,38 +111,39 @@ class ChampionBot(Bot):
 
         if self.movement_pattern == "circle":
 
-            self.target_speed = 50
-            self.turn_rate = 18
+            self.forward(50)
+            self.turn_right(18)
 
         elif self.movement_pattern == "zigzag":
-            self.target_speed = 60
+            self.forward(60)
             if random.random() < 0.5:
-                self.turn_rate = 30
+                self.turn_right(30)
             else:
-                self.turn_rate = -(30)
+                self.turn_left(30)
         elif self.movement_pattern == "spiral":
             distance = 30 + (self.time % 60)
-            self.target_speed = distance
-            self.turn_rate = 25
+            self.forward(distance)
+            self.turn_right(25)
         elif self.movement_pattern == "random_walk":
-            self.target_speed = random.randint(30, 80)
+            speed = random.randint(30, 80)
+            self.forward(speed)
             angle = random.randint(-20, 20)
             if angle < 0:
-                self.turn_rate = -(abs(angle))
+                self.turn_left(abs(angle))
             else:
-                self.turn_rate = angle
+                self.turn_right(angle)
         elif self.movement_pattern == "aggressive":
-            self.target_speed = 70
-            self.turn_rate = random.randint(5, 25)
+            self.forward(70)
+            self.turn_right(random.randint(5, 25))
         elif self.movement_pattern == "evasive":
             if random.random() < 0.3:
-                self.target_speed = -(40)
+                self.back(40)
             else:
-                self.target_speed = 50
-            self.turn_rate = random.randint(20, 70)
+                self.forward(50)
+            self.turn_right(random.randint(20, 70))
         elif self.movement_pattern == "defensive":
-            self.target_speed = 30
-            self.turn_rate = random.randint(30, 90)
+            self.forward(30)
+            self.turn_right(random.randint(30, 90))
 
     async def on_scanned_bot(self, event):
         """
@@ -164,7 +170,7 @@ class ChampionBot(Bot):
         self.enemy_history.append({
             'x': enemy_x,
             'y': enemy_y,
-            'time': self.get_turn_number()
+            'time': self.get_tick_count()
         })
 
         # Keep only recent history
@@ -204,7 +210,11 @@ class ChampionBot(Bot):
         # Only shoot if good chance or desperate
         if will_hit or hit_prob > 0.4 or distance < 100:
             angle = self.calculate_angle(self.get_x(), self.get_y(), future_x, future_y)
-            self.gun_turn_rate = self.calc_gun_turn(angle)
+            gun_turn = self.calc_gun_turn(angle)
+            if gun_turn < 0:
+                self.turn_gun_left(abs(gun_turn))
+            else:
+                self.turn_gun_right(gun_turn)
             await self.fire(power)
             self.shots_fired += 1
             
@@ -282,13 +292,13 @@ class ChampionBot(Bot):
         """Quick dodge when enemy fires (Week 4)"""
         dodge_type = random.randint(1, 3)
         if dodge_type == 1:
-            self.turn_rate = 90
-            self.target_speed = 70
+            self.turn_right(90)
+            self.forward(70)
         elif dodge_type == 2:
-            self.turn_rate = -(90)
-            self.target_speed = 70
+            self.turn_left(90)
+            self.forward(70)
         else:
-            self.target_speed = -(60)
+            self.back(60)
 
     async def on_hit_by_bullet(self, event):
         """React to damage (Week 4)"""
@@ -308,12 +318,40 @@ class ChampionBot(Bot):
                 self.get_y() > self.get_arena_height() - margin)
 
     def avoid_walls(self):
-        """Wall avoidance (Week 3)"""
-        center_x = self.get_arena_width() / 2
-        center_y = self.get_arena_height() / 2
-        angle = self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
-        self.turn_to(angle)
-        self.target_speed = 70
+        """
+        Simple, effective wall avoidance:
+        1. Back up at full speed
+        2. Turn 90 degrees away from nearest wall
+        """
+        # Always back up when near walls
+        self.back(80)  # FULL REVERSE!
+
+        # Determine which wall is nearest and turn perpendicular to it
+        x = self.get_x()
+        y = self.get_y()
+        arena_width = self.get_arena_width()
+        arena_height = self.get_arena_height()
+
+        dist_left = x
+        dist_right = arena_width - x
+        dist_top = arena_height - y
+        dist_bottom = y
+
+        # Find nearest wall and turn 90° away from it
+        min_dist = min(dist_left, dist_right, dist_top, dist_bottom)
+
+        if min_dist == dist_left:
+            # Near left wall - turn right (East)
+            self.turn_right(20)
+        elif min_dist == dist_right:
+            # Near right wall - turn left (West)
+            self.turn_left(20)
+        elif min_dist == dist_top:
+            # Near top wall - turn down (South)
+            self.turn_right(20)
+        else:
+            # Near bottom wall - turn up (North)
+            self.turn_left(20)
 
     def is_valid_target(self, x, y):
         """Target validation (Week 3)"""
@@ -333,7 +371,10 @@ class ChampionBot(Bot):
             turn_amount -= 360
         while turn_amount < -180:
             turn_amount += 360
-        self.turn_rate = turn_amount
+        if turn_amount < 0:
+            self.turn_left(abs(turn_amount))
+        else:
+            self.turn_right(turn_amount)
 
     async def on_win(self, event):
         """Victory!"""

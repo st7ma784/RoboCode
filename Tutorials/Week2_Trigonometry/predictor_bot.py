@@ -1,14 +1,21 @@
-"""
-PredictorBot - A tank that predicts enemy movement!
+"""PredictorBot - A tank that predicts enemy movement!
 
 Week 2 Tutorial - Learning Trigonometry
 This tank uses math to predict where enemies will be and shoots at their future position.
 """
 import math
-from robocode_tank_royale.bot_api import BaseBot, BotInfo
+from robocode_tank_royale.bot_api import Bot, BotInfo
 
-class PredictorBot(BaseBot):
+class PredictorBot(Bot):
     """Uses trigonometry to predict enemy movement and aim ahead"""
+
+    def __init__(self, bot_info=None):
+        super().__init__(bot_info=bot_info)
+        
+        # Set independence flags for independent gun/radar control
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
 
     async def run(self):
         """Main loop - runs every game tick"""

@@ -28,6 +28,11 @@ class StalkerBot(Bot):
     def __init__(self, bot_info=None):
         super().__init__(bot_info=bot_info)
 
+        # Set independence flags - gun and radar move independently
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
+
         # Set distinctive color - DARK BLUE (stealthy)
         self.body_color = Color.from_rgb(63, 81, 181)  # Indigo
         self.turret_color = Color.from_rgb(48, 63, 159)  # Dark Indigo
@@ -156,7 +161,7 @@ class StalkerBot(Bot):
         self.target_speed = event.speed
         self.target_direction = event.direction
 
-        # Calculate distance
+        # Calculate distance once
         dx = self.target_x - self.get_x()
         dy = self.target_y - self.get_y()
         distance = math.sqrt(dx*dx + dy*dy)
@@ -178,79 +183,95 @@ class StalkerBot(Bot):
             self.consecutive_linear_scans = 0
             # print(f"🔀 Erratic movement - holding fire")
 
-        # Predict future position
-        future_x, future_y = self.predict_position(event, distance)
+        # Calculate fire power once (reuse for prediction and firing)
+        fire_power = self.choose_fire_power(distance)
+
+        # Predict future position using calculated fire power
+        future_x, future_y = self.predict_position(event, distance, fire_power)
 
         # Aim at predicted position
         aim_angle = self.calculate_angle(self.get_x(), self.get_y(), future_x, future_y)
         gun_turn = self.calc_gun_turn(aim_angle)
+
+        # Set gun turn rate (use property API, not method call)
         self.gun_turn_rate = gun_turn
 
-        # ONLY FIRE if target has been linear for enough scans AND gun is aimed
+        # ONLY FIRE if target has been linear for enough scans AND gun is nearly aligned
         if self.consecutive_linear_scans >= self.linear_threshold and abs(gun_turn) < 15:
-            power = self.choose_fire_power(distance)
-            await self.fire(power)
+            await self.fire(fire_power)
             # print(f"💥 FIRING! Target predictable for {self.consecutive_linear_scans} scans")
 
     def detect_linear_movement(self):
         """
         Detect if enemy is moving in a straight line
 
-        Returns True if recent positions form roughly a straight line
+        Returns True if recent positions form roughly a straight line.
+        Optimized to check angles on-the-fly without intermediate list.
         """
         if len(self.target_history) < 3:
             return False
 
         positions = list(self.target_history)
 
-        # Calculate movement vectors between consecutive positions
-        vectors = []
-        for i in range(len(positions) - 1):
+        # Calculate baseline angle from first movement
+        dx = positions[1]['x'] - positions[0]['x']
+        dy = positions[1]['y'] - positions[0]['y']
+
+        # If no movement, can't determine linearity
+        if dx == 0 and dy == 0:
+            return False
+
+        baseline_angle = math.degrees(math.atan2(dx, dy))
+
+        # Check subsequent movements against baseline
+        for i in range(1, len(positions) - 1):
             dx = positions[i+1]['x'] - positions[i]['x']
             dy = positions[i+1]['y'] - positions[i]['y']
 
-            # Calculate angle of movement
-            if dx != 0 or dy != 0:
-                angle = math.degrees(math.atan2(dx, dy))
-                vectors.append(angle)
+            # Skip stationary frames
+            if dx == 0 and dy == 0:
+                continue
 
-        if len(vectors) < 2:
-            return False
+            # Calculate angle of this movement
+            angle = math.degrees(math.atan2(dx, dy))
 
-        # Check if all movement angles are similar (within 20 degrees)
-        first_angle = vectors[0]
-        for angle in vectors[1:]:
-            diff = abs(angle - first_angle)
-            # Normalize angle difference
+            # Calculate normalized angle difference
+            diff = abs(angle - baseline_angle)
             if diff > 180:
                 diff = 360 - diff
 
-            if diff > 20:  # Not linear enough
+            # If deviation exceeds threshold, movement is not linear
+            if diff > 20:
                 return False
 
         return True
 
-    def predict_position(self, event, distance):
+    def predict_position(self, event, distance, fire_power):
         """
         Predict where enemy will be when bullet arrives
 
-        Uses linear prediction from Week 2
+        Args:
+            event: Scanned bot event
+            distance: Distance to target
+            fire_power: Bullet power to use (pre-calculated)
+
+        Returns:
+            (future_x, future_y): Predicted position
         """
-        # Estimate bullet travel time
-        bullet_power = self.choose_fire_power(distance)
-        bullet_speed = 20 - (3 * bullet_power)
+        # Calculate bullet travel time using provided fire power
+        bullet_speed = 20 - (3 * fire_power)
         time_to_hit = distance / bullet_speed
 
-        # Calculate future position
+        # Calculate future position based on current velocity
         heading_rad = math.radians(event.direction)
         future_x = event.x + event.speed * time_to_hit * math.sin(heading_rad)
         future_y = event.y + event.speed * time_to_hit * math.cos(heading_rad)
 
-        # Validate prediction is in arena
+        # Validate prediction is in arena bounds
         margin = 20
         if (future_x < margin or future_x > self.get_arena_width() - margin or
             future_y < margin or future_y > self.get_arena_height() - margin):
-            # Out of bounds - use current position
+            # Out of bounds - use current position as fallback
             future_x = event.x
             future_y = event.y
 
@@ -290,22 +311,40 @@ class StalkerBot(Bot):
                 self.get_y() > self.get_arena_height() - margin)
 
     def avoid_walls(self):
-        """Turn away from walls - critical for kiting bot"""
-        # If very close, back up
-        if self.is_too_close_to_wall(20):
-            self.target_speed = -50
-            # Turn toward center
-            center_x = self.get_arena_width() / 2
-            center_y = self.get_arena_height() / 2
-            angle = self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
-            self.turn_to(angle)
+        """
+        Simple, effective wall avoidance:
+        1. Back up at full speed
+        2. Turn 90 degrees away from nearest wall
+        """
+        # Always back up when near walls
+        self.target_speed = -80  # FULL REVERSE!
+
+        # Determine which wall is nearest and turn perpendicular to it
+        x = self.get_x()
+        y = self.get_y()
+        arena_width = self.get_arena_width()
+        arena_height = self.get_arena_height()
+
+        dist_left = x
+        dist_right = arena_width - x
+        dist_top = arena_height - y
+        dist_bottom = y
+
+        # Find nearest wall and turn 90° away from it
+        min_dist = min(dist_left, dist_right, dist_top, dist_bottom)
+
+        if min_dist == dist_left:
+            # Near left wall - turn right (East)
+            self.turn_rate = 20
+        elif min_dist == dist_right:
+            # Near right wall - turn left (West)
+            self.turn_rate = -20
+        elif min_dist == dist_top:
+            # Near top wall - turn down (South)
+            self.turn_rate = 20
         else:
-            # Turn toward center and move forward
-            center_x = self.get_arena_width() / 2
-            center_y = self.get_arena_height() / 2
-            angle = self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
-            self.turn_to(angle)
-            self.target_speed = 60
+            # Near bottom wall - turn up (North)
+            self.turn_rate = -20
 
     def calculate_angle(self, from_x, from_y, to_x, to_y):
         """Calculate angle from one point to another"""

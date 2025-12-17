@@ -1,14 +1,21 @@
-"""
-BoundaryBot - A smart tank that never hits walls!
+"""BoundaryBot - A smart tank that never hits walls!
 
 Week 3 Tutorial - Boundary Checking
 This tank checks boundaries before moving and validates targets before shooting.
 """
 import math
-from robocode_tank_royale.bot_api import BaseBot, BotInfo
+from robocode_tank_royale.bot_api import Bot, BotInfo
 
-class BoundaryBot(BaseBot):
+class BoundaryBot(Bot):
     """Demonstrates boundary checking and wall avoidance"""
+
+    def __init__(self, bot_info=None):
+        super().__init__(bot_info=bot_info)
+        
+        # Set independence flags for independent gun/radar control
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
 
     async def run(self):
         """Main loop with boundary checking"""

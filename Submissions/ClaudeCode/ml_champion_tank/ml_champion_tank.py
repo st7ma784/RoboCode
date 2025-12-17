@@ -88,6 +88,12 @@ class QLearningBrain:
 class MLChampionTank(Bot):
     def __init__(self, bot_info=None):
         super().__init__(bot_info)
+        
+        # Enable independence for gun and radar
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
+        
         self.params = self.load_params()
         self.brain = QLearningBrain(self.params)
 
@@ -122,16 +128,19 @@ class MLChampionTank(Bot):
 
             # Keep scanning if no enemy
             if not self.enemy:
-                self.radar_turn_rate = 45
-                self.target_speed = 6
-                self.turn_rate = 10
+                self.turn_radar_right(45)
+                self.forward(6)
+                self.turn_right(10)
             else:
                 # Lock radar on enemy
                 dx = self.enemy['x'] - self.get_x()
                 dy = self.enemy['y'] - self.get_y()
                 angle_to_enemy = math.degrees(math.atan2(dy, dx))
                 radar_turn = self.normalize_angle(angle_to_enemy - self.get_radar_direction())
-                self.radar_turn_rate = radar_turn * 2
+                if radar_turn < 0:
+                    self.turn_radar_left(abs(radar_turn * 2))
+                else:
+                    self.turn_radar_right(radar_turn * 2)
 
                 await self.execute_qlearning_action()
 
@@ -213,41 +222,65 @@ class MLChampionTank(Bot):
 
         gun_turn = self.normalize_angle(angle_to_enemy - self.get_gun_direction())
         # Turn gun aggressively to track target
-        self.gun_turn_rate = gun_turn * 1.5  # Faster tracking
+        gun_turn_amount = gun_turn * 1.5
+        if gun_turn_amount < 0:
+            self.turn_gun_left(abs(gun_turn_amount))
+        else:
+            self.turn_gun_right(gun_turn_amount)
 
         # ACTION 0: Aggressive charge
         if action == 0:
             turn_needed = self.normalize_angle(angle_to_enemy - self.get_direction())
-            self.turn_rate = turn_needed * 0.5
-            self.target_speed = 8
+            turn_amount = turn_needed * 0.5
+            if turn_amount < 0:
+                self.turn_left(abs(turn_amount))
+            else:
+                self.turn_right(turn_amount)
+            self.forward(8)
 
         # ACTION 1: Defensive retreat
         elif action == 1:
             retreat_angle = angle_to_enemy + 180
             turn_needed = self.normalize_angle(retreat_angle - self.get_direction())
-            self.turn_rate = turn_needed * 0.5
-            self.target_speed = 8
+            turn_amount = turn_needed * 0.5
+            if turn_amount < 0:
+                self.turn_left(abs(turn_amount))
+            else:
+                self.turn_right(turn_amount)
+            self.forward(8)
 
         # ACTION 2: Circle left
         elif action == 2:
             circle_angle = angle_to_enemy + 80
             turn_needed = self.normalize_angle(circle_angle - self.get_direction())
-            self.turn_rate = turn_needed * 0.4
-            self.target_speed = 7
+            turn_amount = turn_needed * 0.4
+            if turn_amount < 0:
+                self.turn_left(abs(turn_amount))
+            else:
+                self.turn_right(turn_amount)
+            self.forward(7)
 
         # ACTION 3: Circle right
         elif action == 3:
             circle_angle = angle_to_enemy - 80
             turn_needed = self.normalize_angle(circle_angle - self.get_direction())
-            self.turn_rate = turn_needed * 0.4
-            self.target_speed = 7
+            turn_amount = turn_needed * 0.4
+            if turn_amount < 0:
+                self.turn_left(abs(turn_amount))
+            else:
+                self.turn_right(turn_amount)
+            self.forward(7)
 
         # ACTION 4: Strafe
         else:
             strafe_angle = angle_to_enemy + random.choice([-60, 60])
             turn_needed = self.normalize_angle(strafe_angle - self.get_direction())
-            self.turn_rate = turn_needed * 0.4
-            self.target_speed = 7
+            turn_amount = turn_needed * 0.4
+            if turn_amount < 0:
+                self.turn_left(abs(turn_amount))
+            else:
+                self.turn_right(turn_amount)
+            self.forward(7)
 
         # Fire after setting movement - ACCURATE shooting!
         # Tight tolerance for accurate hits with prediction
@@ -261,7 +294,11 @@ class MLChampionTank(Bot):
         if x < margin or x > self.get_arena_width() - margin or y < margin or y > self.get_arena_height() - margin:
             center_x, center_y = self.get_arena_width() / 2, self.get_arena_height() / 2
             to_center = math.degrees(math.atan2(center_y - y, center_x - x))
-            self.turn_rate = self.normalize_angle(to_center - self.get_direction()) * 0.6
+            turn_amount = self.normalize_angle(to_center - self.get_direction()) * 0.6
+            if turn_amount < 0:
+                self.turn_left(abs(turn_amount))
+            else:
+                self.turn_right(turn_amount)
 
     def calculate_reward(self):
         reward = 0.0

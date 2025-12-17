@@ -76,11 +76,11 @@ class EnemyTracker:
         
         # Each array holds one property for ALL enemies
         self.enemy_ids = []  # Names/IDs (can't vectorize strings easily)
-        self.get_x() = np.array([])  # X positions
-        self.get_y() = np.array([])  # Y positions
+        self.x = np.array([])  # X positions
+        self.y = np.array([])  # Y positions
         self.vx = np.array([])  # X velocities
         self.vy = np.array([])  # Y velocities
-        self.get_energy() = np.array([])  # Health
+        self.energy = np.array([])  # Health
         self.last_seen = np.array([])  # Last update tick
     
     def update(self, enemy_id, x, y, vx, vy, energy, tick):
@@ -103,11 +103,11 @@ class EnemyTracker:
             # Add new enemy (if not at max)
             if len(self.enemy_ids) < self.max_enemies:
                 self.enemy_ids.append(enemy_id)
-                self.get_x() = np.append(self.get_x(), x)
-                self.get_y() = np.append(self.get_y(), y)
+                self.x = np.append(self.x, x)
+                self.y = np.append(self.y, y)
                 self.vx = np.append(self.vx, vx)
                 self.vy = np.append(self.vy, vy)
-                self.get_energy() = np.append(self.get_energy(), energy)
+                self.energy = np.append(self.energy, energy)
                 self.last_seen = np.append(self.last_seen, tick)
     
     def cleanup(self, current_tick, max_age=100):
@@ -131,11 +131,11 @@ class EnemyTracker:
         # Keep only fresh data
         keep_idx = np.where(keep)[0]
         self.enemy_ids = [self.enemy_ids[i] for i in keep_idx]
-        self.get_x() = self.get_x()[keep]
-        self.get_y() = self.get_y()[keep]
+        self.x = self.x[keep]
+        self.y = self.y[keep]
         self.vx = self.vx[keep]
         self.vy = self.vy[keep]
-        self.get_energy() = self.get_energy()[keep]
+        self.energy = self.energy[keep]
         self.last_seen = self.last_seen[keep]
     
     def count(self):
@@ -289,7 +289,7 @@ class SkirmisherTank(Bot):
         
         # State tracking
         self.tick = 0
-        self.get_radar_direction() = 1
+        self.radar_direction = 1
         
         # Statistics
         self.shots_fired = 0
@@ -354,11 +354,11 @@ class SkirmisherTank(Bot):
         
         More efficient than spinning in circles
         """
-        self.radar_turn_rate = self.get_radar_direction() * 45
+        self.radar_turn_rate = self.radar_direction * 45
         
         # Reverse direction periodically
         if self.tick % 8 == 0:
-            self.get_radar_direction() *= -1
+            self.radar_direction *= -1
     
     async def on_scanned_bot(self, event):
         """

@@ -24,6 +24,11 @@ class TrackerBot(Bot):
 
     def __init__(self, bot_info=None):
         super().__init__(bot_info=bot_info)
+          
+        # Set independence flags - gun and radar move independently
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
         
         # Set distinctive color - GREEN!
         self.body_color = Color.from_rgb(76, 175, 80)  # Green
@@ -78,7 +83,7 @@ class TrackerBot(Bot):
             current_tick = self.get_tick_count()
 
             # Spin radar to find enemies
-            self.radar_turn_rate = 45
+            self.turn_radar_right(45)
 
             # Check if target is stale (haven't seen in 100 ticks)
             if self.target_x is not None and (current_tick - self.last_target_seen_tick) > 100:
@@ -96,10 +101,11 @@ class TrackerBot(Bot):
 
                 # Continue escaping
                 self.avoid_walls()
-
+                await self.go()
+                continue
 
             # Boundary checking FIRST - ramming bot needs early warning!
-            elif self.is_too_close_to_wall(80):
+            if self.is_too_close_to_wall(80):
                 self.wall_escape_mode = True
                 self.wall_escape_ticks = 40  # Longer escape time to ensure clearance
                 self.avoid_walls()
@@ -108,8 +114,8 @@ class TrackerBot(Bot):
                 self.pursue_target()
             else:
                 # No target yet - search
-                self.target_speed = 20
-                self.turn_rate = 10
+                self.forward(20)
+                self.turn_right(10)
 
             await self.go()
 
@@ -126,7 +132,8 @@ class TrackerBot(Bot):
 
         # RAMMING STRATEGY: Always charge straight at the enemy!
         self.turn_to(angle_to_target)
-        self.target_speed = 80  # FULL SPEED RAM!
+        self.turn_radar_right(20)
+        self.forward(80)  # FULL SPEED RAM!
 
     async def on_scanned_bot(self, event):
         """
@@ -154,7 +161,11 @@ class TrackerBot(Bot):
 
         # Aim at predicted position
         aim_angle = self.calculate_angle(self.get_x(), self.get_y(), future_x, future_y)
-        self.gun_turn_rate = self.calc_gun_turn(aim_angle)
+        gun_turn = self.calc_gun_turn(aim_angle)
+        if gun_turn < 0:
+            self.turn_gun_left(abs(gun_turn))
+        else:
+            self.turn_gun_right(gun_turn)
 
         # Choose power based on distance and energy
         power = self.choose_fire_power(distance)
@@ -203,12 +214,12 @@ class TrackerBot(Bot):
         # Emergency dodge
         if self.get_energy() > 30:
             # Aggressive counter
-            self.turn_rate = 90
-            self.target_speed = 100
+            self.turn_right(90)
+            self.forward(100)
         else:
             # Defensive retreat
-            self.target_speed = -(80)
-            self.turn_rate = 135
+            self.back(80)
+            self.turn_right(135)
 
     async def on_bot_death(self, event):
         """When an enemy bot dies, clear our target to search for new ones"""
@@ -236,22 +247,40 @@ class TrackerBot(Bot):
                 future_y < self.get_arena_height() - margin)
 
     def avoid_walls(self):
-        """Turn away from walls - AGGRESSIVE for ramming bot"""
-        # If very close, back up FAST
-        if self.is_too_close_to_wall(20):
-            self.target_speed = -80  # FULL REVERSE!
-            # Turn toward center while backing up
-            center_x = self.get_arena_width() / 2
-            center_y = self.get_arena_height() / 2
-            angle = self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
-            self.turn_to(angle)
+        """
+        Simple, effective wall avoidance:
+        1. Back up at full speed
+        2. Turn 90 degrees away from nearest wall
+        """
+        # Always back up when near walls
+        self.back(100)  # FULL REVERSE!
+
+        # Determine which wall is nearest and turn perpendicular to it
+        x = self.get_x()
+        y = self.get_y()
+        arena_width = self.get_arena_width()
+        arena_height = self.get_arena_height()
+
+        dist_left = x
+        dist_right = arena_width - x
+        dist_top = arena_height - y
+        dist_bottom = y
+
+        # Find nearest wall and turn 90° away from it
+        min_dist = min(dist_left, dist_right, dist_top, dist_bottom)
+
+        if min_dist == dist_left:
+            # Near left wall - turn right (East)
+            self.turn_right(20)
+        elif min_dist == dist_right:
+            # Near right wall - turn left (West)
+            self.turn_left(20)
+        elif min_dist == dist_top:
+            # Near top wall - turn down (South)
+            self.turn_right(20)
         else:
-            # Turn toward center and move forward FAST
-            center_x = self.get_arena_width() / 2
-            center_y = self.get_arena_height() / 2
-            angle = self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
-            self.turn_to(angle)
-            self.target_speed = 80  # FULL SPEED ESCAPE!
+            # Near bottom wall - turn up (North)
+            self.turn_left(20)
 
     def calculate_angle(self, from_x, from_y, to_x, to_y):
         """Calculate angle from one point to another"""
@@ -265,7 +294,10 @@ class TrackerBot(Bot):
             turn_amount -= 360
         while turn_amount < -180:
             turn_amount += 360
-        self.turn_rate = turn_amount
+        if turn_amount < 0:
+            self.turn_left(abs(turn_amount))
+        else:
+            self.turn_right(turn_amount)
 
 
 # Strengths:

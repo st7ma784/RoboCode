@@ -88,7 +88,7 @@ class DodgeMovement(MovementStrategy):
     
     def __init__(self):
         self.counter = 0
-        self.get_direction() = 1
+        self.direction = 1
     
     def move(self, tank):
         """Move with random dodging and wall avoidance"""
@@ -107,10 +107,10 @@ class DodgeMovement(MovementStrategy):
         
         # Random direction changes for unpredictability
         if self.counter > 20:
-            self.get_direction() = random.choice([-1, 1])
+            self.direction = random.choice([-1, 1])
             turn = random.randint(30, 90)
             
-            if self.get_direction() > 0:
+            if self.direction > 0:
                 tank.turn_right(turn)
             else:
                 tank.turn_left(turn)
@@ -271,9 +271,9 @@ class ProfessionalTank(BaseTank):
     Easy to modify, test, and improve!
     """
     
-    def __init__(self):
+    def __init__(self, bot_info=None):
         # Call parent class constructor
-        super().__init__()
+        super().__init__(bot_info=bot_info)
         
         self.name = "ProfessionalTank"
         
@@ -316,11 +316,11 @@ class ProfessionalTank(BaseTank):
         # Create scanned_robot object for strategy compatibility
         class ScannedRobot:
             def __init__(self, x, y, speed, direction, energy):
-                self.get_x() = x
-                self.get_y() = y
+                self.x = x
+                self.y = y
                 self.speed = speed
-                self.get_direction() = direction
-                self.get_energy() = energy
+                self.direction = direction
+                self.energy = energy
         
         scanned_robot = ScannedRobot(enemy_x, enemy_y, event.speed, event.direction, event.energy)
         
@@ -394,11 +394,11 @@ class SniperTank(BaseTank):
         # Create scanned_robot object for strategy compatibility
         class ScannedRobot:
             def __init__(self, x, y, speed, direction, energy):
-                self.get_x() = x
-                self.get_y() = y
+                self.x = x
+                self.y = y
                 self.speed = speed
-                self.get_direction() = direction
-                self.get_energy() = energy
+                self.direction = direction
+                self.energy = energy
         
         scanned_robot = ScannedRobot(enemy_x, enemy_y, event.speed, event.direction, event.energy)
         

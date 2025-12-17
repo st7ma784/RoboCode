@@ -22,6 +22,11 @@ class SpinBot(Bot):
     def __init__(self, bot_info=None):
         super().__init__(bot_info=bot_info)
         
+        # Set independence flags - gun and radar move independently
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
+        
         # Set distinctive color - ORANGE!
         self.body_color = Color.from_rgb(255, 152, 0)  # Orange
         self.turret_color = Color.from_rgb(255, 87, 34)  # Deep Orange

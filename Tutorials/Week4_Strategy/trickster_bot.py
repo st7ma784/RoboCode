@@ -1,18 +1,23 @@
-"""
-TricksterBot - A tank that's impossible to predict!
+"""TricksterBot - A tank that's impossible to predict!
 
 Week 4 Tutorial - Strategy and Unpredictable Movement
 This tank changes movement patterns randomly and reacts differently to events.
 """
 import random
 import math
-from robocode_tank_royale.bot_api import BaseBot, BotInfo
+from robocode_tank_royale.bot_api import Bot, BotInfo
 
-class TricksterBot(BaseBot):
+class TricksterBot(Bot):
     """Uses unpredictable movement patterns to avoid being hit"""
 
     def __init__(self, bot_info=None):
         super().__init__(bot_info=bot_info)
+        
+        # Set independence flags for independent gun/radar control
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
+        
         # Time tracking
         self.time = 0
 

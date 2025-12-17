@@ -1,7 +1,9 @@
 {
   "name": "Rambo",
   "version": "1.0.0",
-  "author": "s MANDER",
+  "authors": [
+    "s MANDER"
+  ],
   "description": "Perimeter patrol sharpshooter that varies shot power",
   "url": "",
   "countryCodes": [

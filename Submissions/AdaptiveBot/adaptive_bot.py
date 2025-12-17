@@ -254,6 +254,12 @@ class AdaptiveBot(Bot):
     
     def __init__(self, bot_info=None):
         super().__init__(bot_info=bot_info)
+        
+        # Set independence flags - gun and radar move independently from body
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
+        
         self.movement = FieldBasedMovement()
         self.targeting = PredictiveTargeting()
         self.bullet_tracker = BulletTracker()
@@ -315,20 +321,24 @@ class AdaptiveBot(Bot):
             while turn_amount < -180:
                 turn_amount += 360
             
-            self.turn_rate = turn_amount
+            if turn_amount < 0:
+                self.turn_left(abs(turn_amount))
+            else:
+                self.turn_right(turn_amount)
             
             # Set speed based on field value
             if value > 0:
-                self.target_speed = 8  # Full speed to good position
+                self.forward(8)  # Full speed to good position
             elif value > -500:
-                self.target_speed = 5  # Moderate speed
+                self.forward(5)  # Moderate speed
             else:
-                self.target_speed = 8  # Fast escape from danger
+                self.forward(8)  # Fast escape from danger
             
             # Radar sweep
-            self.radar_turn_rate = 45
             if self.ticks % 10 == 0:
-                self.radar_turn_rate = -45
+                self.turn_radar_left(45)
+            else:
+                self.turn_radar_right(45)
             
             # Engage targets
             if len(self.enemies) > 0:
@@ -406,7 +416,10 @@ class AdaptiveBot(Bot):
             while gun_turn < -180:
                 gun_turn += 360
             
-            self.gun_turn_rate = gun_turn
+            if gun_turn < 0:
+                self.turn_gun_left(abs(gun_turn))
+            else:
+                self.turn_gun_right(gun_turn)
             
             # Fire if gun is roughly aimed
             if abs(gun_turn) < 5:
@@ -465,8 +478,11 @@ class AdaptiveBot(Bot):
         while turn_amount < -180:
             turn_amount += 360
         
-        self.turn_rate = turn_amount
-        self.target_speed = 8
+        if turn_amount < 0:
+            self.turn_left(abs(turn_amount))
+        else:
+            self.turn_right(turn_amount)
+        self.forward(8)
     
     async def on_bot_death(self, event):
         """Remove dead bot from tracking"""

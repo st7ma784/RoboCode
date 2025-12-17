@@ -24,6 +24,11 @@ class WallsBot(Bot):
     def __init__(self, bot_info=None):
         super().__init__(bot_info=bot_info)
         
+        # Set independence flags - gun and radar move independently
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
+        
         # Set distinctive color - BLUE!
         self.body_color = Color.from_rgb(33, 150, 243)  # Blue
         self.turret_color = Color.from_rgb(3, 169, 244)  # Light Blue

@@ -20,6 +20,11 @@ class ExampleTank(Bot):
         super().__init__(bot_info=bot_info)
         self.name = "ExampleTank"
 
+        # Enable independence for gun and radar
+        self.set_adjust_gun_for_body_turn(True)
+        self.set_adjust_radar_for_body_turn(True)
+        self.set_adjust_radar_for_gun_turn(True)
+
 
     def calc_gun_turn(self, target_angle):
         """Calculate gun turn needed to face target angle"""
@@ -37,9 +42,9 @@ class ExampleTank(Bot):
         target = target_angle % 360
         diff = (target - current + 180) % 360 - 180
         if diff < 0:
-            self.turn_rate = -(abs(diff))
+            self.turn_left(abs(diff))
         else:
-            self.turn_rate = diff
+            self.turn_right(diff)
 
     async def run(self):
         """Main loop"""
@@ -49,11 +54,11 @@ class ExampleTank(Bot):
                 self.avoid_walls()
             else:
                 # Simple circular movement
-                self.target_speed = 40
-                self.turn_rate = 15
+                self.forward(40)
+                self.turn_right(15)
 
             # Scan for enemies
-            self.radar_turn_rate = 45
+            self.turn_radar_right(45)
             
             await self.go()
 
@@ -72,7 +77,11 @@ class ExampleTank(Bot):
             enemy_x, enemy_y
         )
 
-        self.gun_turn_rate = self.calc_gun_turn(angle)
+        gun_turn = self.calc_gun_turn(angle)
+        if gun_turn < 0:
+            self.turn_gun_left(abs(gun_turn))
+        else:
+            self.turn_gun_right(gun_turn)
 
         # Power based on distance (Week 5)
         if distance < 200:
@@ -85,11 +94,12 @@ class ExampleTank(Bot):
     async def on_hit_by_bullet(self, event):
         """React to being hit (Week 4)"""
         # Random dodge
+        import random
         if random.random() < 0.5:
-            self.turn_rate = 90
+            self.turn_right(90)
         else:
-            self.turn_rate = -(90)
-        self.target_speed = 80
+            self.turn_left(90)
+        self.forward(80)
 
     def is_too_close_to_wall(self, margin):
         """Boundary check (Week 3)"""
@@ -103,8 +113,17 @@ class ExampleTank(Bot):
         center_x = self.get_arena_width() / 2
         center_y = self.get_arena_height() / 2
         angle = self.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
-        self.turn_to(angle)
-        self.target_speed = 60
+        
+        # Turn toward center
+        current = self.get_direction() % 360
+        target = angle % 360
+        diff = (target - current + 180) % 360 - 180
+        if diff < 0:
+            self.turn_left(abs(diff))
+        else:
+            self.turn_right(diff)
+        
+        self.forward(60)
 
     def calculate_angle(self, from_x, from_y, to_x, to_y):
         """Angle calculation (Week 2)"""

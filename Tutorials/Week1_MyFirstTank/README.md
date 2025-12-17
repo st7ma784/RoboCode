@@ -1,9 +1,10 @@
 # Week 1: My First Tank! 🎮🚀
 
-> **Note:** This tutorial uses the BaseBot API which uses **property assignments** instead of method calls.
-> - Movement: `self.forward = 100` (not `self.forward(100)`)
-> - Turning: `self.turn_body = 45` (not `self.turn_right(45)`)
-> - All event handlers must be `async` and use `await` for actions like `await self.fire()`
+> **Important:** This tutorial uses the **Bot API** (the friendly, simple API).
+> - Movement: `self.forward(100)` - simple method calls
+> - Turning: `self.turn_right(45)` - easy to understand
+> - Event handlers are regular methods (not async)
+> - Much easier for beginners!
 
 Welcome to Python Tank Wars! Get ready to build your very own fighting robot tank and watch it battle in the arena!
 
@@ -353,6 +354,44 @@ This is called automatically when your radar spots an enemy! You can shoot at th
 def on_hit_by_bullet(self, hit_by_bullet):
 ```
 This is called when you get hit! You can react and fight back.
+
+### 🎯 CRITICAL: Independence Flags (Must Know!)
+
+You'll notice these three lines in your `__init__` method:
+
+```python
+self.set_adjust_gun_for_body_turn(True)
+self.set_adjust_radar_for_body_turn(True)
+self.set_adjust_radar_for_gun_turn(True)
+```
+
+**These are SUPER IMPORTANT!** They let your tank do three things at once:
+- Move your body
+- Aim your gun
+- Scan with your radar
+
+#### Without These Flags:
+- When you turn your body, your gun turns with it (ruins your aim!)
+- When you turn your body, your radar turns with it (loses tracking!)
+- When you turn your gun, your radar turns with it (messes up scanning!)
+
+#### With These Flags:
+- ✅ Your gun stays aimed while your body turns
+- ✅ Your radar keeps scanning while your body moves
+- ✅ All three parts work independently!
+
+**Real-World Example:**
+Imagine driving a car:
+- **Body** = The car itself moves/turns
+- **Gun** = Your head aims at something
+- **Radar** = Your eyes scan around
+
+With independence flags, you can:
+- Drive forward while looking to the side (gun aims independently)
+- Turn the car while keeping your eyes on something (radar stays locked)
+- Look around while aiming at a target (radar and gun work separately)
+
+**Always include these three lines in every tank you create!** 🚀
 
 ## Part 5: Make It Your Own! (20 minutes)
 
