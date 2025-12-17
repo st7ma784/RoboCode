@@ -27,7 +27,6 @@ class SittingDuck(Bot):
         self.turret_color = Color.from_rgb(233, 30, 99)  # Pink
         self.radar_color = Color.from_rgb(156, 39, 176)  # Purple
         
-        print("🦆 SittingDuck initialized! Ready to be target practice!")
 
     async def run(self):
         """
@@ -36,15 +35,9 @@ class SittingDuck(Bot):
         This tank does almost nothing!
         Just spins its radar to look for enemies.
         """
-        print("🦆 SittingDuck.run() started!")
-        tick = 0
         while self.is_running():
-            tick += 1
-            if tick % 100 == 0:
-                print(f"🦆 SittingDuck tick {tick}, energy: {self.get_energy():.1f}")
-            
+         
             # Spin radar to scan for enemies
-            self.radar_turn_rate = 45
 
             # That's it! No movement, minimal strategy
             await self.go()

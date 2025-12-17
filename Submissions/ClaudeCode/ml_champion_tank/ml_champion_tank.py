@@ -167,11 +167,7 @@ class MLChampionTank(Bot):
 
     async def execute_action(self, action, dx, dy, distance):
         """Execute action - movement AND firing"""
-        angle_to_enemy = math.degrees(math.atan2(dy, dx))
-        gun_turn = self.normalize_angle(angle_to_enemy - self.get_gun_direction())
-        self.gun_turn_rate = gun_turn
-
-        # Choose power
+        # Choose power FIRST (needed for prediction)
         if distance < self.params.close_range:
             power = 2.5
         elif distance < self.params.far_range:
@@ -181,6 +177,43 @@ class MLChampionTank(Bot):
 
         if self.get_energy() < 20:
             power = 1.0
+
+        # PREDICT enemy position for better accuracy!
+        bullet_speed = 20 - 3 * power
+        time_to_hit = distance / bullet_speed
+
+        # Use enemy velocity for proper linear prediction
+        if self.enemy and 'speed' in self.enemy and 'direction' in self.enemy:
+            # Linear prediction based on current velocity
+            enemy_x = self.enemy['x']
+            enemy_y = self.enemy['y']
+            enemy_speed = self.enemy['speed']
+            enemy_heading = self.enemy['direction']
+
+            # Predict where they'll be when bullet arrives
+            heading_rad = math.radians(enemy_heading)
+            future_x = enemy_x + enemy_speed * time_to_hit * math.sin(heading_rad)
+            future_y = enemy_y + enemy_speed * time_to_hit * math.cos(heading_rad)
+
+            # Validate prediction is in arena
+            margin = 20
+            if (future_x < margin or future_x > self.get_arena_width() - margin or
+                future_y < margin or future_y > self.get_arena_height() - margin):
+                # Predicted position out of bounds - use current position
+                future_x = enemy_x
+                future_y = enemy_y
+
+            # Calculate angle to PREDICTED position
+            future_dx = future_x - self.get_x()
+            future_dy = future_y - self.get_y()
+            angle_to_enemy = math.degrees(math.atan2(future_dy, future_dx))
+        else:
+            # No velocity data - aim at current position
+            angle_to_enemy = math.degrees(math.atan2(dy, dx))
+
+        gun_turn = self.normalize_angle(angle_to_enemy - self.get_gun_direction())
+        # Turn gun aggressively to track target
+        self.gun_turn_rate = gun_turn * 1.5  # Faster tracking
 
         # ACTION 0: Aggressive charge
         if action == 0:
@@ -216,9 +249,9 @@ class MLChampionTank(Bot):
             self.turn_rate = turn_needed * 0.4
             self.target_speed = 7
 
-        # Fire after setting movement - VERY AGGRESSIVE!
-        # Fire even if gun isn't perfectly aimed to encourage shooting
-        if abs(gun_turn) < 60:  # Much more lenient - fire if roughly aimed
+        # Fire after setting movement - ACCURATE shooting!
+        # Tight tolerance for accurate hits with prediction
+        if abs(gun_turn) < 20:  # Only fire when gun is well-aimed!
             await self.fire(power)
             self.shots += 1
 
@@ -266,6 +299,8 @@ class MLChampionTank(Bot):
             'x': event.x,
             'y': event.y,
             'energy': event.energy,
+            'speed': event.speed,
+            'direction': event.direction,
         }
         if self.last_enemy_energy is None or self.last_enemy_energy == 100.0:
             self.last_enemy_energy = event.energy

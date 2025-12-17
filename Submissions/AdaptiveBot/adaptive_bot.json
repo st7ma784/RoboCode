@@ -6,16 +6,10 @@
   ],
   "description": "Field-based adaptive movement with predictive shooting",
   "url": "",
-  "countryCodes": [
-    "us"
-  ],
-  "gameTypes": [
-    "melee",
-    "1v1",
-    "classic"
-  ],
+  "countryCode": "US",
+  "gameTypes": ["melee", "1v1","classic"],
   "platform": "Python",
-  "programmingLang": "Python 3.10+",
+  "programmingLang": "Python 3.8+",
   "initialPosition": null,
   "botClass": "AdaptiveBot",
   "botModule": "adaptive_bot"

@@ -562,10 +562,11 @@ class ChallengerTank(Bot):
             self.turn_to(escape_angle)
 
             force_magnitude = np.sqrt(total_fx**2 + total_fy**2)
-            move_speed = min(50, 25 + force_magnitude / 100)
+            # More aggressive movement - faster speeds
+            move_speed = min(70, 40 + force_magnitude / 80)
             self.target_speed = move_speed
         else:
-            self.target_speed = 25
+            self.target_speed = 40  # Faster default
 
     def execute_standard_anti_gravity(self):
         """Standard anti-gravity"""
@@ -584,9 +585,9 @@ class ChallengerTank(Bot):
         if total_fx != 0 or total_fy != 0:
             escape_angle = np.degrees(np.arctan2(total_fx, total_fy))
             self.turn_to(escape_angle)
-            self.target_speed = 30
+            self.target_speed = 55  # Much more aggressive
         else:
-            self.target_speed = 25
+            self.target_speed = 40
 
     def execute_patrol(self):
         """Active search when no enemies visible - hunt them down!"""
@@ -599,7 +600,7 @@ class ChallengerTank(Bot):
             center_y = self.get_arena_height() / 2
             angle = self.targeting.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
             self.turn_to(angle)
-            self.target_speed = 50
+            self.target_speed = 70  # Aggressive escape from walls
         else:
             # Active hunting pattern - move toward center and search quadrants
             # Divide arena into quadrants and search each one
@@ -618,10 +619,10 @@ class ChallengerTank(Bot):
                 target_x = self.get_arena_width() * 0.25
                 target_y = self.get_arena_height() * 0.25
 
-            # Move toward target quadrant
+            # Move toward target quadrant - hunt aggressively!
             angle = self.targeting.calculate_angle(self.get_x(), self.get_y(), target_x, target_y)
             self.turn_to(angle)
-            self.target_speed = 40
+            self.target_speed = 60  # Fast hunting
 
         # Wide radar sweep to find enemies
         self.radar_turn_rate = 60
@@ -720,16 +721,18 @@ class ChallengerTank(Bot):
             # Target going out of bounds - aim at current position instead
             future_x[0], future_y[0] = target_x, target_y
 
+        # Aim gun at predicted position
+        angle = self.targeting.calculate_angle(
+            self.get_x(), self.get_y(), future_x[0], future_y[0]
+        )
+        gun_turn = self.calc_gun_turn(angle)
+        self.gun_turn_rate = gun_turn
+
         # Hit probability
         hit_prob = self.calculate_hit_probability(target_distance, target_velocity, bullet_power)
 
-        # Fire if meets threshold
-        if hit_prob >= fire_threshold or target_distance < 100:
-            angle = self.targeting.calculate_angle(
-                self.get_x(), self.get_y(), future_x[0], future_y[0]
-            )
-            gun_turn = self.calc_gun_turn(angle)
-            self.gun_turn_rate = gun_turn
+        # ONLY FIRE if good shot AND gun is reasonably aimed
+        if (hit_prob >= fire_threshold or target_distance < 100) and abs(gun_turn) < 20:
             await self.fire(bullet_power)
             self.shots_fired += 1
 

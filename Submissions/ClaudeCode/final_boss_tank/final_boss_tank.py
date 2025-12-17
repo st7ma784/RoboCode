@@ -694,6 +694,13 @@ class FinalBossTank(Bot):
                                              self.get_arena_height()):
             future_x[0], future_y[0] = target_x, target_y
 
+        # Always aim gun at predicted position
+        angle = self.targeting.calculate_angle(
+            self.get_x(), self.get_y(), future_x[0], future_y[0]
+        )
+        gun_turn = self.calc_gun_turn(angle)
+        self.gun_turn_rate = gun_turn
+
         # Week 5: Calculate hit probability
         hit_prob = self.advanced_targeting.calculate_hit_probability(
             target_distance, target_velocity, bullet_power
@@ -705,18 +712,10 @@ class FinalBossTank(Bot):
             bullet_power, self.get_arena_width(), self.get_arena_height()
         )
 
-        # Fire if good shot or desperate
-        if will_hit or hit_prob > 0.35 or target_distance < 150:
-            angle = self.targeting.calculate_angle(
-                self.get_x(), self.get_y(), future_x[0], future_y[0]
-            )
-            gun_turn = self.calc_gun_turn(angle)
-            self.gun_turn_rate = gun_turn
-
-            # Only fire if gun is approximately aimed (within 15 degrees)
-            if abs(gun_turn) < 15:
-                await self.fire(bullet_power)
-                self.shots_fired += 1
+        # ONLY FIRE if: good shot AND gun is accurately aimed AND actually have valid enemies
+        if self.enemies.count() > 0 and (will_hit or hit_prob > 0.35 or target_distance < 150) and abs(gun_turn) < 12:
+            await self.fire(bullet_power)
+            self.shots_fired += 1
 
     async def on_hit_by_bullet(self, event):
         """Week 4: Reactive dodging"""

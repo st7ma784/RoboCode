@@ -27,49 +27,59 @@ class SpinBot(Bot):
         self.turret_color = Color.from_rgb(255, 87, 34)  # Deep Orange
         self.radar_color = Color.from_rgb(255, 193, 7)  # Amber
         
-        print("🌀 SpinBot initialized! Spinning up!")
 
     async def run(self):
         """
-        Main loop - spin and shoot!
+        Main loop - spin in place!
 
-        Strategy: Spin in place while radar scans.
-        The spinning makes us slightly harder to hit than SittingDuck.
+        Strategy: Spin continuously, letting on_scanned_bot handle firing
+        when we're pointed at an enemy.
         """
-        print("🌀 SpinBot.run() started!")
         tick = 0
         while self.is_running():
             tick += 1
-            if tick % 100 == 0:
-                print(f"🌀 SpinBot tick {tick}, energy: {self.get_energy():.1f}, direction: {self.get_direction():.0f}°")
-            
-            # Spin the tank body
+           
+            # Spin the tank body AND gun together continuously
             self.turn_rate = 20
+            self.gun_turn_rate = 20  # Gun spins with body
 
+            # Spin the radar at same rate to keep it aligned with gun
+            self.radar_turn_rate = 20
 
-            # Shoot periodically
-            await self.fire(1)
-            
+            # DON'T fire here - let on_scanned_bot handle firing when aimed!
+
             await self.go()
 
     async def on_scanned_bot(self, event):
         """
-        When we see an enemy - shoot harder!
+        When we see an enemy - ONLY fire if gun is pointed at them!
 
-        We shoot with more power when we detect someone.
+        Since we're spinning, we only shoot when we happen to be aimed correctly.
         """
-        print(f"Enemy spotted at distance {event}!")
-        distance_x=(self.get_x()-event.x)**2
-        distance_y=(self.get_y()-event.y)**2
+        # Calculate angle to enemy
+        dx = event.x - self.get_x()
+        dy = event.y - self.get_y()
+        angle_to_enemy = math.degrees(math.atan2(dx, dy))
 
-        distance=math.sqrt(distance_x+distance_y)
-        # Choose power based on distance
-        if distance < 200:
-            # Close range - use high power
-            await self.fire(3)
-        else:
-            # Far away - use low power
-            await self.fire(1)
+        # Calculate how far off our gun is from target
+        gun_error = angle_to_enemy - self.get_gun_direction()
+        # Normalize to -180 to 180
+        while gun_error > 180:
+            gun_error -= 360
+        while gun_error < -180:
+            gun_error += 360
+
+        # ONLY fire if gun is pointing close to enemy (within 10 degrees)
+        if abs(gun_error) < 10:
+            # Calculate distance
+            distance = math.sqrt(dx*dx + dy*dy)
+
+            # Choose power based on distance
+            if distance < 200:
+                await self.fire(3)
+            else:
+                await self.fire(1)
+
 
     async def on_hit_by_bullet(self, event):
         """
@@ -77,18 +87,9 @@ class SpinBot(Bot):
 
         Not a great strategy, but better than nothing.
         """
-        print("Got hit! Spinning faster!")
 
         # Spin to change position slightly
         self.turn_rate = 90
-
-    async def on_hit_wall(self, event):
-        """
-        If we somehow hit a wall (we shouldn't since we don't move)
-
-        Just in case!
-        """
-        print("Hit a wall? How did that happen?")
 
 
 # Strengths:

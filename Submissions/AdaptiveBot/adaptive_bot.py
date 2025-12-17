@@ -409,7 +409,7 @@ class AdaptiveBot(Bot):
             self.gun_turn_rate = gun_turn
             
             # Fire if gun is roughly aimed
-            if abs(gun_turn) < 15:
+            if abs(gun_turn) < 5:
                 self.fire(power)
     
     async def on_scanned_bot(self, event):

@@ -61,14 +61,9 @@ class ChampionBot(Bot):
         - Unpredictable movement (Week 4)
         - Radar management
         """
-        print("🏆 ChampionBot.run() started!")
-        print(f"🏆 Colors set: body={self.body_color}, turret={self.turret_color}, radar={self.radar_color}")
+
         while self.is_running():
             self.time += 1
-            
-            # Periodic alive check
-            if self.time % 100 == 0:
-                print(f"🏆 ChampionBot alive at tick {self.time}, energy: {self.get_energy():.1f}")
 
             # Check boundaries FIRST (Week 3)
             if self.is_too_close_to_wall(50):
@@ -107,7 +102,6 @@ class ChampionBot(Bot):
         while self.movement_pattern == old_pattern and len(patterns) > 1:
             self.movement_pattern = random.choice(patterns)
 
-        print(f"🔄 Pattern: {self.movement_pattern}")
 
     def execute_movement(self):
         """Execute current movement pattern"""
@@ -180,7 +174,6 @@ class ChampionBot(Bot):
         if self.enemy_energy is not None:
             energy_drop = self.enemy_energy - event.energy
             if 0 < energy_drop <= 3:
-                print(f"⚠️  Enemy fired! Power ~{energy_drop}")
                 self.emergency_dodge()
 
         self.enemy_energy = event.energy
@@ -213,9 +206,7 @@ class ChampionBot(Bot):
             self.gun_turn_rate = self.calc_gun_turn(angle)
             await self.fire(power)
             self.shots_fired += 1
-            print(f"🎯 Shot {self.shots_fired}: P{power}, {hit_prob:.0%}")
-        else:
-            print(f"⏸️  Hold: {hit_prob:.0%}")
+            
 
     def choose_optimal_power(self, distance, velocity):
         """Choose power maximizing expected damage (Week 5)"""
@@ -301,7 +292,6 @@ class ChampionBot(Bot):
     async def on_hit_by_bullet(self, event):
         """React to damage (Week 4)"""
         self.shots_hit += 1  # Enemy hit us
-        print(f"💥 Hit! Energy: {self.get_energy():.0f}")
 
         # Force pattern change
         self.pattern_timer = 0

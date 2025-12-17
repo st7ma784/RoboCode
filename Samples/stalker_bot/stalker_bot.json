@@ -1,0 +1,11 @@
+{
+  "name": "StalkerBot",
+  "version": "1.0",
+  "authors": ["Claude Code"],
+  "description": "Patient sniper that kites enemies and waits for predictable movement patterns before firing. Demonstrates advanced tracking and selective aggression.",
+  "url": "",
+  "countryCode": "US",
+  "gameTypes": ["melee", "1v1","classic"],
+  "platform": "Python",
+  "programmingLang": "Python 3.8+"
+}
