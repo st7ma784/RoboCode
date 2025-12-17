@@ -164,7 +164,7 @@ class ChampionBot(Bot):
         self.enemy_history.append({
             'x': enemy_x,
             'y': enemy_y,
-            'time': self.time
+            'time': self.get_turn_number()
         })
 
         # Keep only recent history
