@@ -32,7 +32,6 @@ class WallsBot(Bot):
         # How close to walls we want to stay
         self.wall_distance = 50
         
-        print("🧱 WallsBot initialized! Perimeter patrol mode!")
 
     def calc_gun_turn(self, target_angle):
         """Calculate gun turn needed to face target angle"""
@@ -51,13 +50,8 @@ class WallsBot(Bot):
         Strategy: Stay near the perimeter of the arena.
         This gives us walls at our back (fewer angles to defend).
         """
-        print("🧱 WallsBot.run() started!")
-        tick = 0
         while self.is_running():
-            tick += 1
-            if tick % 100 == 0:
-                print(f"🧱 WallsBot tick {tick}, energy: {self.get_energy():.1f}")
-            
+          
             # Keep radar spinning
             self.radar_turn_rate = 45
 
@@ -161,13 +155,11 @@ class WallsBot(Bot):
 
     async def on_hit_by_bullet(self, event):
         """React to being hit"""
-        print("Hit! Continuing perimeter patrol...")
         # Keep moving along wall
         self.target_speed = 100
 
     async def on_hit_wall(self, event):
         """If we hit a wall, turn and continue"""
-        print("Bumped into wall!")
         self.target_speed = -(20)
         self.turn_rate = 90
 

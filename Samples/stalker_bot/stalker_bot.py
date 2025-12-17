@@ -74,16 +74,14 @@ class StalkerBot(Bot):
         - Only fire when enemy is predictable
         """
         # print("👻 StalkerBot.run() started!")
-        tick = 0
         while self.is_running():
-            tick += 1
             # print(f"👻 Stalking... tick {tick}, energy: {self.get_energy():.1f}, target: {self.target_x is not None}")
 
             # Wide radar sweep to find/track target
-            self.radar_turn_rate = 45
+            self.radar_turn_rate = 30
 
             # PRIORITY 1: Wall avoidance (critical for kiting bot)
-            if self.is_too_close_to_wall(70):
+            if self.is_too_close_to_wall(30):
                 # print(f"⚠️ Wall avoidance triggered at ({self.get_x():.0f}, {self.get_y():.0f})")
                 self.avoid_walls()
             # PRIORITY 2: Kite if we have a target
@@ -145,11 +143,11 @@ class StalkerBot(Bot):
         """
         # Lock onto first target we see (sticky targeting)
         if self.target_id is None:
-            self.target_id = event.scannedBotId
+            self.target_id = event.scanned_bot_id
             # print(f"🎯 Target locked: {self.target_id}")
 
         # Only track our locked target
-        if event.scannedBotId != self.target_id:
+        if event.scanned_bot_id != self.target_id:
             return
 
         # Update target position
@@ -294,7 +292,7 @@ class StalkerBot(Bot):
     def avoid_walls(self):
         """Turn away from walls - critical for kiting bot"""
         # If very close, back up
-        if self.is_too_close_to_wall(40):
+        if self.is_too_close_to_wall(20):
             self.target_speed = -50
             # Turn toward center
             center_x = self.get_arena_width() / 2

@@ -7,7 +7,7 @@
   "description": "The easiest opponent - doesn't move, just shoots randomly. Perfect for testing your first tank! Difficulty: ★ (Level 1 - Warmup)",
   "url": "",
   "countryCodes": [
-    "US"
+    "us"
   ],
   "gameTypes": [
     "melee",

@@ -1,0 +1,20 @@
+{
+  "name": "Rambo",
+  "version": "1.0.0",
+  "author": "s MANDER",
+  "description": "Perimeter patrol sharpshooter that varies shot power",
+  "url": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "melee",
+    "1v1",
+    "classic"
+  ],
+  "platform": "Python",
+  "programmingLang": "Python 3.10+",
+  "initialPosition": null,
+  "botClass": "Rambo",
+  "botModule": "rambo"
+}

@@ -43,9 +43,6 @@ class SpinBot(Bot):
             self.turn_rate = 20
             self.gun_turn_rate = 20  # Gun spins with body
 
-            # Spin the radar at same rate to keep it aligned with gun
-            self.radar_turn_rate = 20
-
             # DON'T fire here - let on_scanned_bot handle firing when aimed!
 
             await self.go()

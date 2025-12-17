@@ -39,7 +39,6 @@ class ChampionBot(Bot):
         # Statistics
         self.shots_fired = 0
         self.shots_hit = 0
-        self.time = 0
         
 
     def calc_gun_turn(self, target_angle):
@@ -63,7 +62,6 @@ class ChampionBot(Bot):
         """
 
         while self.is_running():
-            self.time += 1
 
             # Check boundaries FIRST (Week 3)
             if self.is_too_close_to_wall(50):
@@ -73,13 +71,13 @@ class ChampionBot(Bot):
                 if self.pattern_timer <= 0:
                     self.choose_movement_pattern()
                     self.pattern_timer = random.randint(40, 80)
-
-                # Execute current movement
-                self.execute_movement()
-                self.pattern_timer -= 1
+                else:
+                    # Execute current movement
+                    self.execute_movement()
+                    self.pattern_timer -= 1
 
             # Smart radar
-            self.radar_turn_rate = 40
+            self.radar_turn_rate = 20
             
             await self.go()
 
@@ -104,10 +102,13 @@ class ChampionBot(Bot):
 
 
     def execute_movement(self):
-        """Execute current movement pattern"""
+
+
         if self.movement_pattern == "circle":
+
             self.target_speed = 50
             self.turn_rate = 18
+
         elif self.movement_pattern == "zigzag":
             self.target_speed = 60
             if random.random() < 0.5:

@@ -36,6 +36,7 @@ class TrackerBot(Bot):
         self.target_heading = None
         self.target_velocity = None
         self.target_distance = None
+        self.last_target_seen_tick = 0  # Track when we last saw target
 
         # Preferred combat distance
         self.optimal_distance = 200
@@ -44,7 +45,15 @@ class TrackerBot(Bot):
         self.wall_escape_mode = False
         self.wall_escape_ticks = 0
         
-        print("🎯 TrackerBot initialized! Hunting mode activated!")
+
+    def clear_target(self):
+        """Clear current target and return to search mode"""
+        self.target_x = None
+        self.target_y = None
+        self.target_heading = None
+        self.target_velocity = None
+        self.target_distance = None
+        self.last_target_seen_tick = 0
 
     def calc_gun_turn(self, target_angle):
         """Calculate gun turn needed to face target angle"""
@@ -65,42 +74,40 @@ class TrackerBot(Bot):
         - Move toward them (but not too close)
         - Maintain optimal combat distance
         """
-        print("🎯 TrackerBot.run() started!")
-        tick = 0
         while self.is_running():
-            tick += 1
-            if tick % 100 == 0:
-                print(f"🎯 TrackerBot tick {tick}, energy: {self.get_energy():.1f}")
-            
+            current_tick = self.get_tick_count()
+
             # Spin radar to find enemies
             self.radar_turn_rate = 45
+
+            # Check if target is stale (haven't seen in 100 ticks)
+            if self.target_x is not None and (current_tick - self.last_target_seen_tick) > 100:
+                self.clear_target()
 
             # Wall escape mode - CRITICAL for ramming bot that charges straight
             if self.wall_escape_mode:
                 self.wall_escape_ticks -= 1
-                # Check if we're clear of walls now (very far margin)
-                if not self.is_too_close_to_wall(100) or self.wall_escape_ticks <= 0:
+                # Must be WELL clear of walls AND enough time passed
+                if not self.is_too_close_to_wall(120) and self.wall_escape_ticks <= 0:
                     self.wall_escape_mode = False
-                    print("✅ Clear of walls - resuming RAMMING!")
-                else:
-                    # Continue escaping aggressively
-                    self.avoid_walls()
-                    await self.go()
-                    continue
+                elif self.wall_escape_ticks <= 0:
+                    # Timeout but still near wall - extend timeout to avoid oscillation
+                    self.wall_escape_ticks = 20
+
+                # Continue escaping
+                self.avoid_walls()
+
 
             # Boundary checking FIRST - ramming bot needs early warning!
-            if self.is_too_close_to_wall(80):
-                print("⚠️ Too close to wall - EMERGENCY ESCAPE MODE!")
+            elif self.is_too_close_to_wall(80):
                 self.wall_escape_mode = True
-                self.wall_escape_ticks = 30  # Stay in escape longer for ramming bot
+                self.wall_escape_ticks = 40  # Longer escape time to ensure clearance
                 self.avoid_walls()
             # If we have a target and not near wall, pursue
             elif self.target_x is not None:
                 self.pursue_target()
             else:
                 # No target yet - search
-                if tick % 50 == 0:
-                    print(f"🔍 Searching for targets... ({self.get_x():.0f}, {self.get_y():.0f})")
                 self.target_speed = 20
                 self.turn_rate = 10
 
@@ -118,7 +125,6 @@ class TrackerBot(Bot):
         )
 
         # RAMMING STRATEGY: Always charge straight at the enemy!
-        print(f"🎯 RAMMING! Distance: {self.target_distance:.0f}")
         self.turn_to(angle_to_target)
         self.target_speed = 80  # FULL SPEED RAM!
 
@@ -132,17 +138,16 @@ class TrackerBot(Bot):
         distance_x = self.get_x() - event.x
         distance_y = self.get_y() - event.y
         distance = math.sqrt(distance_x**2 + distance_y**2)
-        
+
         # Update tracking info directly from event
         self.target_x = event.x
         self.target_y = event.y
         self.target_distance = distance
-        
+        self.last_target_seen_tick = self.get_tick_count()  # Update last seen time
+
         # Estimate velocity and heading from event
         self.target_velocity = event.speed
         self.target_heading = event.direction
-
-        print(f"Target locked: dist={distance:.0f}, vel={event.speed:.1f}")
 
         # Predict where enemy will be
         future_x, future_y = self.predict_position(event, distance)
@@ -194,7 +199,6 @@ class TrackerBot(Bot):
 
     async def on_hit_by_bullet(self, event):
         """React when hit - dodge!"""
-        print(f"Hit! Energy: {self.get_energy():.0f} - Dodging!")
 
         # Emergency dodge
         if self.get_energy() > 30:
@@ -205,6 +209,10 @@ class TrackerBot(Bot):
             # Defensive retreat
             self.target_speed = -(80)
             self.turn_rate = 135
+
+    async def on_bot_death(self, event):
+        """When an enemy bot dies, clear our target to search for new ones"""
+        self.clear_target()
 
     def is_too_close_to_wall(self, margin):
         """Check if near walls (from Week 3)"""
@@ -230,7 +238,7 @@ class TrackerBot(Bot):
     def avoid_walls(self):
         """Turn away from walls - AGGRESSIVE for ramming bot"""
         # If very close, back up FAST
-        if self.is_too_close_to_wall(40):
+        if self.is_too_close_to_wall(20):
             self.target_speed = -80  # FULL REVERSE!
             # Turn toward center while backing up
             center_x = self.get_arena_width() / 2
