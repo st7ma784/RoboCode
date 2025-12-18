@@ -303,35 +303,47 @@ class _MovementPatternController:
                 turn_needed -= 360
             while turn_needed < -180:
                 turn_needed += 360
-            tank.turn_rate = turn_needed
-            tank.target_speed = 50
-            tank.radar_turn_rate = 60  # Wide sweep to find enemies
+
+            if turn_needed < 0:
+                tank.turn_left(abs(turn_needed))
+            else:
+                tank.turn_right(turn_needed)
+            tank.forward(50)
+            tank.turn_radar_right(60)  # Wide sweep to find enemies
 
         elif self.current_pattern == "circle":
-            tank.target_speed = 50
-            tank.turn_rate = 18
+            tank.forward(50)
+            tank.turn_right(18)
         elif self.current_pattern == "zigzag":
-            tank.target_speed = 60
-            tank.turn_rate = 30 if random.random() < 0.5 else -30
+            tank.forward(60)
+            if random.random() < 0.5:
+                tank.turn_right(30)
+            else:
+                tank.turn_left(30)
         elif self.current_pattern == "spiral":
             distance = 30 + (self.counter % 60)
-            tank.target_speed = distance
-            tank.turn_rate = 25
+            tank.forward(distance)
+            tank.turn_right(25)
         elif self.current_pattern == "random_walk":
-            tank.target_speed = random.randint(30, 80)
-            tank.turn_rate = random.randint(-20, 20)
+            speed = random.randint(30, 80)
+            tank.forward(speed)
+            angle = random.randint(-20, 20)
+            if angle < 0:
+                tank.turn_left(abs(angle))
+            else:
+                tank.turn_right(angle)
         elif self.current_pattern == "aggressive":
-            tank.target_speed = 70
-            tank.turn_rate = random.randint(5, 25)
+            tank.forward(70)
+            tank.turn_right(random.randint(5, 25))
         elif self.current_pattern == "evasive":
             if random.random() < 0.3:
-                tank.target_speed = -40
+                tank.back(40)
             else:
-                tank.target_speed = 50
-            tank.turn_rate = random.randint(20, 70)
+                tank.forward(50)
+            tank.turn_right(random.randint(20, 70))
         elif self.current_pattern == "defensive":
-            tank.target_speed = 30
-            tank.turn_rate = random.randint(30, 90)
+            tank.forward(30)
+            tank.turn_right(random.randint(30, 90))
 
 
 # ============= WEEK 5: ADVANCED TARGETING =============

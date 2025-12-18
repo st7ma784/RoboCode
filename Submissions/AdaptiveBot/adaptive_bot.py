@@ -320,12 +320,12 @@ class AdaptiveBot(Bot):
                 turn_amount -= 360
             while turn_amount < -180:
                 turn_amount += 360
-            
+
             if turn_amount < 0:
                 self.turn_left(abs(turn_amount))
             else:
                 self.turn_right(turn_amount)
-            
+
             # Set speed based on field value
             if value > 0:
                 self.forward(8)  # Full speed to good position
@@ -342,11 +342,11 @@ class AdaptiveBot(Bot):
             
             # Engage targets
             if len(self.enemies) > 0:
-                self.engage_best_target()
+                await self.engage_best_target()
             
             await self.go()
     
-    def engage_best_target(self):
+    async def engage_best_target(self):
         """Find and shoot at best target"""
         best_target = None
         best_score = -float('inf')
@@ -423,7 +423,7 @@ class AdaptiveBot(Bot):
             
             # Fire if gun is roughly aimed
             if abs(gun_turn) < 5:
-                self.fire(power)
+                await self.fire(power)
     
     async def on_scanned_bot(self, event):
         """Track enemy position and velocity"""
