@@ -1,0 +1,21 @@
+{
+  "name": "PropertyAPIDemo",
+  "version": "1.0",
+  "authors": [
+    "Tutorial"
+  ],
+  "description": "Tutorial bot demonstrating why property API is better than method API for advanced tanks",
+  "homepage": "",
+  "countryCodes": [
+    "US"
+  ],
+  "gameTypes": [
+    "classic",
+    "melee"
+  ],
+  "platform": "JVM",
+  "programmingLang": "Python",
+  "initialPosition": null,
+  "botClass": "PropertyAPIDemo",
+  "botModule": "demo_property_api"
+}

@@ -321,24 +321,21 @@ class AdaptiveBot(Bot):
             while turn_amount < -180:
                 turn_amount += 360
 
-            if turn_amount < 0:
-                self.turn_left(abs(turn_amount))
-            else:
-                self.turn_right(turn_amount)
+            self.turn_rate = turn_amount
 
             # Set speed based on field value
             if value > 0:
-                self.forward(8)  # Full speed to good position
+                self.target_speed = 8  # Full speed to good position
             elif value > -500:
-                self.forward(5)  # Moderate speed
+                self.target_speed = 5  # Moderate speed
             else:
-                self.forward(8)  # Fast escape from danger
-            
+                self.target_speed = 8  # Fast escape from danger
+
             # Radar sweep
             if self.ticks % 10 == 0:
-                self.turn_radar_left(45)
+                self.radar_turn_rate = -45
             else:
-                self.turn_radar_right(45)
+                self.radar_turn_rate = 45
             
             # Engage targets
             if len(self.enemies) > 0:
@@ -415,11 +412,8 @@ class AdaptiveBot(Bot):
                 gun_turn -= 360
             while gun_turn < -180:
                 gun_turn += 360
-            
-            if gun_turn < 0:
-                self.turn_gun_left(abs(gun_turn))
-            else:
-                self.turn_gun_right(gun_turn)
+
+            self.gun_turn_rate = gun_turn
             
             # Fire if gun is roughly aimed
             if abs(gun_turn) < 5:
@@ -477,12 +471,9 @@ class AdaptiveBot(Bot):
             turn_amount -= 360
         while turn_amount < -180:
             turn_amount += 360
-        
-        if turn_amount < 0:
-            self.turn_left(abs(turn_amount))
-        else:
-            self.turn_right(turn_amount)
-        self.forward(8)
+
+        self.turn_rate = turn_amount
+        self.target_speed = 8
     
     async def on_bot_death(self, event):
         """Remove dead bot from tracking"""

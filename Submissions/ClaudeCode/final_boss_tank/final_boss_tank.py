@@ -304,46 +304,37 @@ class _MovementPatternController:
             while turn_needed < -180:
                 turn_needed += 360
 
-            if turn_needed < 0:
-                tank.turn_left(abs(turn_needed))
-            else:
-                tank.turn_right(turn_needed)
-            tank.forward(50)
-            tank.turn_radar_right(60)  # Wide sweep to find enemies
+            tank.turn_rate = turn_needed
+            tank.target_speed = 50
+            tank.radar_turn_rate = 60  # Wide sweep to find enemies
 
         elif self.current_pattern == "circle":
-            tank.forward(50)
-            tank.turn_right(18)
+            tank.target_speed = 50
+            tank.turn_rate = 18
         elif self.current_pattern == "zigzag":
-            tank.forward(60)
-            if random.random() < 0.5:
-                tank.turn_right(30)
-            else:
-                tank.turn_left(30)
+            tank.target_speed = 60
+            tank.turn_rate = 30 if random.random() < 0.5 else -30
         elif self.current_pattern == "spiral":
             distance = 30 + (self.counter % 60)
-            tank.forward(distance)
-            tank.turn_right(25)
+            tank.target_speed = distance
+            tank.turn_rate = 25
         elif self.current_pattern == "random_walk":
             speed = random.randint(30, 80)
-            tank.forward(speed)
+            tank.target_speed = speed
             angle = random.randint(-20, 20)
-            if angle < 0:
-                tank.turn_left(abs(angle))
-            else:
-                tank.turn_right(angle)
+            tank.turn_rate = angle
         elif self.current_pattern == "aggressive":
-            tank.forward(70)
-            tank.turn_right(random.randint(5, 25))
+            tank.target_speed = 70
+            tank.turn_rate = random.randint(5, 25)
         elif self.current_pattern == "evasive":
             if random.random() < 0.3:
-                tank.back(40)
+                tank.target_speed = -40
             else:
-                tank.forward(50)
-            tank.turn_right(random.randint(20, 70))
+                tank.target_speed = 50
+            tank.turn_rate = random.randint(20, 70)
         elif self.current_pattern == "defensive":
-            tank.forward(30)
-            tank.turn_right(random.randint(30, 90))
+            tank.target_speed = 30
+            tank.turn_rate = random.randint(30, 90)
 
 
 # ============= WEEK 5: ADVANCED TARGETING =============
@@ -505,14 +496,12 @@ class FinalBossTank(Bot):
         current = self.get_direction() % 360
         target = target_angle % 360
         diff = (target - current + 180) % 360 - 180
-        if diff < 0:
-            self.turn_left(abs(diff))
-        else:
-            self.turn_right(diff)
+        self.turn_rate = diff
 
     async def run(self):
         """Main loop - Week 1 structure with advanced logic"""
-        while True:
+        print(f"🎯 {self.name} starting!")
+        while self.is_running():
             self.tick += 1
 
             # Week 7: Periodic cleanup
@@ -527,7 +516,7 @@ class FinalBossTank(Bot):
                                                    self.get_arena_height(), margin=70):
                 # EMERGENCY! Override everything and escape!
                 self.emergency_wall_escape()
-                self.turn_radar_right(45)
+                self.radar_turn_rate = 45
                 # Wall escape has priority - skip normal movement
             else:
                 # Adaptive mode selection
@@ -547,9 +536,9 @@ class FinalBossTank(Bot):
 
             # Radar sweep
             if self.radar_scan_direction > 0:
-                self.turn_radar_right(45)
+                self.radar_turn_rate = 45
             else:
-                self.turn_radar_left(45)
+                self.radar_turn_rate = -45
             if self.tick % 8 == 0:
                 self.radar_scan_direction *= -1
 
@@ -594,9 +583,9 @@ class FinalBossTank(Bot):
 
             force_magnitude = np.sqrt(total_fx**2 + total_fy**2)
             move_speed = min(40, 20 + force_magnitude / 100)
-            self.forward(move_speed)
+            self.target_speed = move_speed
         else:
-            self.forward(20)
+            self.target_speed = 20
 
     def execute_hybrid_movement(self):
         """Combine anti-gravity with pattern variations"""
@@ -614,7 +603,7 @@ class FinalBossTank(Bot):
             if wall_fx != 0 or wall_fy != 0:
                 wall_angle = np.degrees(np.arctan2(wall_fx, wall_fy))
                 self.turn_to(wall_angle)
-                self.forward(50)
+                self.target_speed = 50
             else:
                 self.movement_controller.execute(self)
         else:
@@ -632,7 +621,7 @@ class FinalBossTank(Bot):
             center_y = self.get_arena_height() / 2
             angle = self.targeting.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
             self.turn_to(angle)
-            self.forward(50)
+            self.target_speed = 50
         else:
             # Normal pattern movement
             if self.movement_controller.pattern_timer <= 0:
@@ -648,7 +637,7 @@ class FinalBossTank(Bot):
         center_y = self.get_arena_height() / 2
         angle = self.targeting.calculate_angle(self.get_x(), self.get_y(), center_x, center_y)
         self.turn_to(angle)
-        self.forward(70)
+        self.target_speed = 70
 
     async def on_scanned_bot(self, event):
         """Week 1: Event handler with Week 2 calculations"""
@@ -722,10 +711,7 @@ class FinalBossTank(Bot):
             self.get_x(), self.get_y(), future_x[0], future_y[0]
         )
         gun_turn = self.calc_gun_turn(angle)
-        if gun_turn < 0:
-            self.turn_gun_left(abs(gun_turn))
-        else:
-            self.turn_gun_right(gun_turn)
+        self.gun_turn_rate = gun_turn
 
         # Week 5: Calculate hit probability
         hit_prob = self.advanced_targeting.calculate_hit_probability(
@@ -752,18 +738,18 @@ class FinalBossTank(Bot):
         # Emergency dodge
         dodge = random.choice(['right', 'left', 'back'])
         if dodge == 'right':
-            self.turn_right(90)
-            self.forward(70)
+            self.turn_rate = 90
+            self.target_speed = 70
         elif dodge == 'left':
-            self.turn_left(90)
-            self.forward(70)
+            self.turn_rate = -90
+            self.target_speed = 70
         else:
-            self.back(60)
+            self.target_speed = -60
 
     async def on_hit_wall(self, event):
         """Week 1 & 3: Wall collision handler"""
-        self.back(50)
-        self.turn_right(90)
+        self.target_speed = -50
+        self.turn_rate = 90
 
     def on_robot_death(self, event):
         """Track eliminations"""
