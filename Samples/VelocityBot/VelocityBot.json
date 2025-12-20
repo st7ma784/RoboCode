@@ -7,6 +7,10 @@
   "description": "Example bot of how to use turn rates.",
   "homepage": "",
   "countryCodes": [],
+  "gameTypes": ["melee", "1v1", "classic"],
   "platform": "Python",
-  "programmingLang": "Python 3"
+  "programmingLang": "Python 3",
+  "initialPosition": null,
+  "botClass": "VelocityBot",
+  "botModule": "VelocityBot"
 }

@@ -1,19 +1,16 @@
 {
-  "name": "Rambo",
+  "name": "rambo mk1",
   "version": "1.0.0",
   "authors": [
-    "s MANDER"
+    "smander"
   ],
-  "description": "Perimeter patrol sharpshooter that varies shot power",
-  "url": "",
+  "description": "Fires whenever opportunity occurs.",
+  "homepage": "",
   "countryCodes": [
-    "US"
+    "us",
+    "dk"
   ],
-  "gameTypes": [
-    "melee",
-    "1v1",
-    "classic"
-  ],
+  "gameTypes": ["melee", "1v1", "classic"],
   "platform": "Python",
   "programmingLang": "Python 3.10+",
   "initialPosition": null,

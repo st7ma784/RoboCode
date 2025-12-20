@@ -11,6 +11,10 @@
     "us",
     "dk"
   ],
+  "gameTypes": ["melee", "1v1", "classic"],
   "platform": "Python",
-  "programmingLang": "Python 3"
+  "programmingLang": "Python 3",
+  "initialPosition": null,
+  "botClass": "Walls",
+  "botModule": "Walls"
 }

@@ -93,32 +93,32 @@ class DodgeMovement(MovementStrategy):
     def move(self, tank):
         """Move with random dodging and wall avoidance"""
         self.counter += 1
-        
+
         # Wall avoidance
         margin = 50
-        if tank.x < margin:
-            tank.turn_right(90)
-        elif tank.x > tank.battlefield_width - margin:
-            tank.turn_left(90)
-        elif tank.y < margin:
-            tank.turn_right(90)
-        elif tank.y > tank.battlefield_height - margin:
-            tank.turn_left(90)
-        
+        if tank.get_x() < margin:
+            tank.turn_rate = 90
+        elif tank.get_x() > tank.get_arena_width() - margin:
+            tank.turn_rate = -90
+        elif tank.get_y() < margin:
+            tank.turn_rate = 90
+        elif tank.get_y() > tank.get_arena_height() - margin:
+            tank.turn_rate = -90
+
         # Random direction changes for unpredictability
         if self.counter > 20:
             self.direction = random.choice([-1, 1])
             turn = random.randint(30, 90)
-            
+
             if self.direction > 0:
-                tank.turn_right(turn)
+                tank.turn_rate = turn
             else:
-                tank.turn_left(turn)
-            
+                tank.turn_rate = -turn
+
             self.counter = 0
-        
+
         # Move forward
-        tank.ahead(20)
+        tank.target_speed = 20
 
 
 class CircularMovement(MovementStrategy):
@@ -133,8 +133,8 @@ class CircularMovement(MovementStrategy):
     
     def move(self, tank):
         """Move in a circular pattern"""
-        tank.forward(20)
-        tank.turn_right(10)
+        tank.target_speed = 20
+        tank.turn_rate = 10
         self.angle += 10
 
 

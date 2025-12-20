@@ -18,7 +18,7 @@ import sys
 import os
 
 # Add parent directory to path to import tank_utils
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from tank_utils import TankMath, TankMovement
 
 
@@ -55,7 +55,7 @@ class Rambo(Bot):
             self.aim_inward()
 
             # Radar sweeps constantly
-            self.turn_radar_right(45)
+            self.radar_turn_rate = 45
 
             await self.go()
 
@@ -76,9 +76,9 @@ class Rambo(Bot):
 
         # Move along wall
         if self.move_direction > 0:
-            self.forward(50)
+            self.target_speed = 50
         else:
-            self.back(50)
+            self.target_speed = -50
 
         # Determine direction to follow wall
         if min_dist == dist_left:
@@ -126,9 +126,9 @@ class Rambo(Bot):
         turn_needed = TankMath.normalize_angle(target_heading - current_heading)
         clamped_turn = max(-10, min(10, turn_needed))
         if clamped_turn < 0:
-            self.turn_left(abs(clamped_turn))
+            self.turn_rate = -clamped_turn
         else:
-            self.turn_right(clamped_turn)
+            self.turn_rate = clamped_turn
 
     def aim_inward(self):
         """Keep gun pointing toward arena center with minimal movement"""
@@ -153,9 +153,9 @@ class Rambo(Bot):
         turn_needed = TankMath.normalize_angle(target_gun_angle - current_gun)
         clamped_turn = max(-5, min(5, turn_needed))  # Slow, minimal turns
         if clamped_turn < 0:
-            self.turn_gun_left(abs(clamped_turn))
+            self.gun_turn_rate = -clamped_turn
         else:
-            self.turn_gun_right(clamped_turn)
+            self.gun_turn_rate = clamped_turn
 
     async def on_scanned_bot(self, event):
         """
@@ -269,9 +269,9 @@ class Rambo(Bot):
         self.move_direction *= -1
         # Movement will be updated in next run() iteration
         if self.move_direction > 0:
-            self.forward(50)
+            self.target_speed = 50
         else:
-            self.back(50)
+            self.target_speed = -50
             
     async def on_hit_by_bullet(self, event):
         """React to being hit by adjusting movement"""
@@ -279,9 +279,7 @@ class Rambo(Bot):
         self.move_direction *= -1
 
 
-
-if __name__ == "__main__":
-    import asyncio
+async def main() -> None:
     from pathlib import Path
     
     # Load bot info from JSON file in same directory
@@ -294,4 +292,10 @@ if __name__ == "__main__":
     
     # Create and start the bot
     bot = Rambo(bot_info=bot_info)
-    asyncio.run(bot.start())
+    await bot.start()
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    asyncio.run(main())

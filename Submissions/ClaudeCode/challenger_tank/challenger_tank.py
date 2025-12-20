@@ -473,10 +473,7 @@ class ChallengerTank(Bot):
         current = self.get_direction() % 360
         target = target_angle % 360
         diff = (target - current + 180) % 360 - 180
-        if diff < 0:
-            self.turn_rate = -diff
-        else:
-            self.turn_rate = diff
+        self.turn_rate = diff
 
     async def run(self):
         """Main loop with advanced decision making"""

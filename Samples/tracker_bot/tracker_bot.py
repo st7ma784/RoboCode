@@ -294,10 +294,7 @@ class TrackerBot(Bot):
             turn_amount -= 360
         while turn_amount < -180:
             turn_amount += 360
-        if turn_amount < 0:
-            self.turn_rate = -turn_amount
-        else:
-            self.turn_rate = turn_amount
+        self.turn_rate = turn_amount
 
 
 # Strengths:

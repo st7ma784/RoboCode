@@ -4,9 +4,6 @@ set -e
 # Change to script directory
 cd -- "$(dirname -- "$0")"
 
-# Install dependencies (relative to script dir)
-../deps/install-dependencies.sh
-
 # Try to use venv python first (correct path: ../deps/venv)
 if [ -x "../deps/venv/bin/python" ]; then
     exec "../deps/venv/bin/python" "Walls.py"
